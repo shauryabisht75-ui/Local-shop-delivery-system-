@@ -1,0 +1,55 @@
+// order.h - order queue and linked list (Shaurya Bisht)
+#include <iostream>
+using namespace std;
+
+// status: 0 = Pending, 1 = Accepted, 2 = Delivered
+struct Order {
+    int id;
+    char customer[30];
+    char item[30];
+    float price;
+    int status;
+    Order *next;
+};
+
+Order *head = NULL;      // first order of the linked list
+Order *tail = NULL;      // last order of the linked list
+
+Order *queueArr[100];    // queue of pending orders
+int front = 0;
+int rear = 0;
+
+int orderCount = 0;      // used to give id to orders
+
+void printStatus(int s) {
+    if (s == 0)
+        cout << "Pending";
+    else if (s == 1)
+        cout << "Accepted";
+    else
+        cout << "Delivered";
+}
+
+void placeOrder() {
+    if (rear == 100) {
+        cout << "Queue is full\n";
+        return;
+    }
+
+    Order *n = new Order;
+    orderCount++;
+    n->id = orderCount;
+
+    cout << "Enter customer name: ";
+    cin >> n->customer;
+    cout << "Enter item name: ";
+    cin >> n->item;
+
+    cout << "Enter price: ";
+    cin >> n->price;
+    while (cin.fail() || n->price <= 0) {
+        cout << "Wrong price, enter again: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cin >> n->price;
+    }
