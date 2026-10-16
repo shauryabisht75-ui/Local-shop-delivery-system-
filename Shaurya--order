@@ -53,3 +53,44 @@ void placeOrder() {
         cin.ignore(1000, '\n');
         cin >> n->price;
     }
+
+    n->status = 0;
+    n->next = NULL;
+
+    // add in linked list
+    if (head == NULL) {
+        head = n;
+        tail = n;
+    } else {
+        tail->next = n;
+        tail = n;
+    }
+
+    // add in queue
+    queueArr[rear] = n;
+    rear++;
+
+    cout << "Order placed, your order id is " << n->id << endl;
+}
+
+void acceptOrder() {
+    if (front == rear) {
+        cout << "No pending orders\n";
+        return;
+    }
+
+    Order *n = queueArr[front];   // first order in queue
+    front++;
+    n->status = 1;
+    cout << "Order " << n->id << " accepted\n";
+}
+
+Order *searchOrder(int id) {
+    Order *temp = head;
+    while (temp != NULL) {
+        if (temp->id == id)
+            return temp;
+        temp = temp->next;
+    }
+    return NULL;
+}
