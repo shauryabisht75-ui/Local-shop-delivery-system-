@@ -69,7 +69,7 @@ PENDING  ->  ACCEPTED  ->  DELIVERED
 | Queue | Incoming orders are processed first-come, first-served |
 | Linked list | Each order's status chain (pending -> accepted -> delivered) |
 | Sorting | Price comparison, cheapest shop first |
-| Graph + BFS / Dijkstra | Finding the nearest delivery agent (in progress) |
+| Graph + Dijkstra | Finding the nearest delivery agent (in progress) |
 | OOP (classes, objects, inheritance) | `User` base class with `Shopkeeper`, `Customer` and `DeliveryAgent` |
 
 ## Database Design
