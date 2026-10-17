@@ -94,3 +94,60 @@ Order *searchOrder(int id) {
     }
     return NULL;
 }
+void deliverOrder() {
+    int id;
+    cout << "Enter order id: ";
+    cin >> id;
+    while (cin.fail()) {
+        cout << "Enter a number: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cin >> id;
+    }
+
+    Order *n = searchOrder(id);
+    if (n == NULL)
+        cout << "Order not found\n";
+    else if (n->status != 1)
+        cout << "Order is not accepted yet\n";
+    else {
+        n->status = 2;
+        cout << "Order " << id << " delivered\n";
+    }
+}
+
+void trackOrder() {
+    int id;
+    cout << "Enter order id: ";
+    cin >> id;
+    while (cin.fail()) {
+        cout << "Enter a number: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cin >> id;
+    }
+
+    Order *n = searchOrder(id);
+    if (n == NULL) {
+        cout << "Order not found\n";
+    } else {
+        cout << "Order " << n->id << " (" << n->item << ") is ";
+        printStatus(n->status);
+        cout << endl;
+    }
+}
+
+void showOrders() {
+    if (head == NULL) {
+        cout << "No orders yet\n";
+        return;
+    }
+    Order *temp = head;
+    while (temp != NULL) {
+        cout << temp->id << "  " << temp->customer << "  " << temp->item
+             << "  Rs." << temp->price << "  ";
+        printStatus(temp->status);
+        cout << endl;
+        temp = temp->next;
+    }
+}
