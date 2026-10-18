@@ -2,7 +2,8 @@
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B17-blue)
 ![Database](https://img.shields.io/badge/database-MySQL%20(XAMPP)-orange)
-![Status](https://img.shields.io/badge/status-Phase%20II%20(in%20development)-yellow)
+![Phase I](https://img.shields.io/badge/Phase%20I-completed-brightgreen)
+![Status](https://img.shields.io/badge/Phase%20II-in%20development-yellow)
 
 A console-based C++ application that lets small shopkeepers in remote and hilly areas sell their products online, with customers ordering from nearby shops and delivery agents completing the delivery. Built as a Project-Based Learning (PBL) project using **Data Structures, OOP with C++ and DBMS (MySQL)**.
 
@@ -20,11 +21,13 @@ A console-based C++ application that lets small shopkeepers in remote and hilly 
 6. [Project Structure](#project-structure)
 7. [Getting Started](#getting-started)
 8. [Testing](#testing)
-9. [Project Status](#project-status)
-10. [Team and Contributions](#team-and-contributions)
-11. [Git Workflow](#git-workflow)
-12. [Roadmap](#roadmap)
-13. [References](#references)
+9. [Project Phases](#project-phases)
+10. [Phase I: Completed](#phase-i-completed)
+11. [Project Status (Phase II)](#project-status-phase-ii)
+12. [Team and Contributions](#team-and-contributions)
+13. [Git Workflow](#git-workflow)
+14. [Roadmap](#roadmap)
+15. [References](#references)
 
 ---
 
@@ -87,7 +90,7 @@ Database name: `local_shop_db`. The database and all tables are **created automa
 ## Project Structure
 
 ```
-Local-shop-delivery-system/
+Local-shop-delivery-system-/
 ├── main.cpp                  # Entry point, DB setup, main menu (integration layer)
 ├── Makefile                  # Build and test commands
 ├── README.md
@@ -120,8 +123,8 @@ Local-shop-delivery-system/
 ### Setup
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/shauryabisht75-ui/Local-shop-delivery-system.git
-   cd Local-shop-delivery-system
+   git clone https://github.com/shauryabisht75-ui/Local-shop-delivery-system-.git
+   cd Local-shop-delivery-system-
    ```
 2. **Start MySQL** from the XAMPP Control Panel.
 3. **Check the database settings** in `include/config.h`. XAMPP's default is user `root` with an empty password.
@@ -164,12 +167,42 @@ Phase-II module tests (sample shops and products):
 | Price comparison (cheapest shop first) | Pass |
 | Delivery agent assignment (nearest agent) | Not tested yet (logic pending) |
 
-## Project Status
+## Project Phases
 
-**Overall progress: about 60% (Phase II).**
+| Phase | Focus | Status |
+|-------|-------|--------|
+| **Phase I** | Proposal, problem definition, module design, technology and DSA plan | ✅ **Completed** |
+| **Phase II** | Development of the main modules, database connection, first round of testing | 🔄 In progress (about 60%) |
+| **Phase III** | Integration, remaining modules, full testing, final report and demo | ⏳ Planned |
+
+## Phase I: Completed
+
+Phase I was the planning phase. We submitted the proposal and finalised the problem, modules, technology stack and data structure plan.
+
+**What was completed in Phase I**
+- [x] Proposal submitted
+- [x] Problem statement and objectives finalised
+- [x] Requirement analysis done
+- [x] System design done (modules, layers, order flow)
+- [x] Technology stack chosen: C++, MySQL (XAMPP), VS Code, Git / GitHub
+- [x] Data structure plan finalised: hash map, queue, linked list, sorting, graph search
+- [x] Team roles and module split decided
+
+**Feedback received in Phase I and how we handled it**
+
+| Feedback | Change we made |
+|----------|----------------|
+| Keep the scope realistic | Fixed the project as a console-only app, cash on delivery, no real GPS |
+| Show where DSA is actually needed | Gave each data structure a feature: hash map for lookup, queue for orders, sorting for price comparison |
+| Divide work clearly in the team | One module and one Git branch per member, with review by the team lead |
+
+## Project Status (Phase II)
+
+**Overall progress: about 60%.**
 
 | Module | Status |
 |--------|--------|
+| Phase I (proposal and design) | Completed |
 | Shop management | Completed |
 | Data storage (MySQL) | Completed |
 | Order management | In progress (order tracking pending) |
@@ -192,6 +225,18 @@ Phase-II module tests (sample shops and products):
 - Branches are merged into `main` only **after review by the team lead**
 
 ## Roadmap
+
+**Phase I (completed)**
+- [x] Proposal, problem statement and objectives
+- [x] Requirement analysis and system design
+- [x] Technology stack and DSA plan
+
+**Phase II (in progress)**
+- [x] Shop management module
+- [x] MySQL tables and C++ connection
+- [x] Customer browse, order placing and price comparison
+- [x] Delivery agent registration and viewing assigned orders
+- [ ] Order status flow (queue and linked list) fully integrated
 
 **Phase III**
 - [ ] Order tracking screen for customers
