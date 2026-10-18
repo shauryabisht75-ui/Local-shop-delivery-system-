@@ -1,0 +1,149 @@
+-- ============================================================
+-- Local Shop Delivery System  |  Team ID: DSCPP-III-2026-T113
+-- File    : database.sql
+-- Purpose : Creates the MySQL database and the 3 tables
+--           (users, products, orders) used by the C++ console app.
+-- Run in  : XAMPP -> phpMyAdmin -> SQL tab (or MySQL command line)
+-- ============================================================
+
+
+-- ------------------------------------------------------------
+-- STEP 1: Create the database and select it
+-- ------------------------------------------------------------
+CREATE DATABASE IF NOT EXISTS local_shop_delivery;
+USE local_shop_delivery;
+
+
+-- ------------------------------------------------------------
+-- STEP 2: users table
+-- One table for all 3 types of users (matches the User base
+-- class and its Shopkeeper / Customer / DeliveryAgent children).
+-- The 'role' column tells us which type the user is.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+    user_id    INT AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(50) NOT NULL,
+    phone      VARCHAR(15) NOT NULL UNIQUE,
+    role       ENUM('shopkeeper', 'customer', 'agent') NOT NULL,
+    area       VARCHAR(50) NOT NULL,   -- village/area name (used later for the graph)
+    shop_name  VARCHAR(50) NULL        -- filled only when role = 'shopkeeper'
+);
+
+
+-- ------------------------------------------------------------
+-- STEP 3: products table
+-- Each product belongs to one shopkeeper (shop).
+-- The same product (e.g. Rice) can appear in many shops with
+-- different prices, which is what price comparison uses.
+-- CHECK rules stop negative price / negative stock, because
+-- wrong input crashed our program earlier.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS products (
+    product_id     INT AUTO_INCREMENT PRIMARY KEY,
+    shopkeeper_id  INT NOT NULL,
+    product_name   VARCHAR(50) NOT NULL,
+    price          DECIMAL(8,2) NOT NULL CHECK (price > 0),
+    stock          INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
+    FOREIGN KEY (shopkeeper_id) REFERENCES users(user_id)
+);
+
+
+-- ------------------------------------------------------------
+-- STEP 4: orders table
+-- status follows the order flow: pending -> accepted -> delivered
+-- (same flow as the queue + linked list in C++).
+-- agent_id stays NULL until a delivery agent takes the order.
+-- Payment is cash on delivery, so no payment column is needed.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS orders (
+    order_id     INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id  INT NOT NULL,
+    product_id   INT NOT NULL,
+    agent_id     INT NULL,
+    quantity     INT NOT NULL CHECK (quantity > 0),
+    total_price  DECIMAL(10,2) NOT NULL,
+    status       ENUM('pending', 'accepted', 'delivered') NOT NULL DEFAULT 'pending',
+    order_time   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES users(user_id),
+    FOREIGN KEY (product_id)  REFERENCES products(product_id),
+    FOREIGN KEY (agent_id)    REFERENCES users(user_id)
+);
+
+
+-- ============================================================
+-- SAMPLE DATA (used for testing with sample shops and products)
+-- ============================================================
+
+-- 2 shopkeepers, 2 customers, 2 delivery agents
+INSERT INTO users (name, phone, role, area, shop_name) VALUES
+('Ramesh Negi',  '9000000001', 'shopkeeper', 'Area A', 'Negi General Store'),
+('Sunita Devi',  '9000000002', 'shopkeeper', 'Area B', 'Devi Kirana'),
+('Anil Kumar',   '9000000003', 'customer',   'Area A', NULL),
+('Pooja Rawat',  '9000000004', 'customer',   'Area C', NULL),
+('Vikram Singh', '9000000005', 'agent',      'Area A', NULL),
+('Deepak Joshi', '9000000006', 'agent',      'Area B', NULL);
+
+-- Products (Rice and Sugar are sold in both shops at different prices)
+INSERT INTO products (shopkeeper_id, product_name, price, stock) VALUES
+(1, 'Rice 1kg',  60.00, 50),
+(1, 'Sugar 1kg', 45.00, 30),
+(1, 'Tea 250g',  120.00, 20),
+(2, 'Rice 1kg',  55.00, 40),
+(2, 'Sugar 1kg', 48.00, 25),
+(2, 'Salt 1kg',  20.00, 60);
+
+-- One sample order: Anil orders 2 x Rice from Devi Kirana (cheaper shop)
+INSERT INTO orders (customer_id, product_id, quantity, total_price) VALUES
+(3, 4, 2, 110.00);
+
+
+-- ============================================================
+-- TEST QUERIES (one for each completed feature)
+-- ============================================================
+
+-- 1) Shopkeeper: VIEW stock of shop 1
+SELECT product_id, product_name, price, stock
+FROM products
+WHERE shopkeeper_id = 1;
+
+-- 2) Shopkeeper: ADD a product
+INSERT INTO products (shopkeeper_id, product_name, price, stock)
+VALUES (1, 'Biscuit Pack', 10.00, 100);
+
+-- 3) Shopkeeper: UPDATE price and stock
+UPDATE products
+SET price = 62.00, stock = 45
+WHERE product_id = 1;
+
+-- 4) Shopkeeper: DELETE a product
+DELETE FROM products
+WHERE product_id = 3;
+
+-- 5) Customer: BROWSE all products with their shop name
+SELECT p.product_id, p.product_name, p.price, u.shop_name
+FROM products p
+JOIN users u ON p.shopkeeper_id = u.user_id;
+
+-- 6) Customer: PRICE COMPARISON - same product, cheapest shop first
+SELECT u.shop_name, p.product_name, p.price
+FROM products p
+JOIN users u ON p.shopkeeper_id = u.user_id
+WHERE p.product_name = 'Rice 1kg'
+ORDER BY p.price ASC;
+
+-- 5b) Customer: PLACE an order (new orders start as 'pending')
+INSERT INTO orders (customer_id, product_id, quantity, total_price)
+VALUES (4, 1, 1, 60.00);
+
+-- 7) Delivery agent: REGISTER a new agent
+INSERT INTO users (name, phone, role, area)
+VALUES ('Karan Bisht', '9000000007', 'agent', 'Area C');
+
+-- 8) Delivery agent: VIEW assigned orders (agent 5)
+SELECT order_id, customer_id, product_id, quantity, status
+FROM orders
+WHERE agent_id = 5;
+
+-- 9) Order status flow: pending -> accepted -> delivered
+UPDATE orders SET agent_id = 5, status = 'accepted'  WHERE order_id = 1;
+UPDATE orders SET status = 'delivered'               WHERE order_id = 1;
