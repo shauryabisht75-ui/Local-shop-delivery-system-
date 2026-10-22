@@ -1561,7 +1561,7 @@ int main()
     delivery.addAgent("Rohit", 1);       // sample agents
     delivery.addAgent("Imran", 4);
 
-    cout << "Welcome to LocalKart - Local Shop Delivery System\n";
+    cout << "Welcome to - Local Shop Delivery System\n";
 
     while (true)
     {
@@ -1582,6 +1582,6 @@ int main()
             break;
     }
 
-    cout << "Thank you for using LocalKart!\n";
+    cout << "Thank you for using local shop delivery system!\n";
     return 0;
 }
