@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Local Shop Delivery System</title>
+<style>
+:root{--bg:#f2f4f7;--card:#fff;--tx:#222;--mut:#666;--bd:#ddd;--g1:#1b5e20;--g2:#2e7d32;--hl:#fff9c4;--th:#e8f5e9;--pre:#f5f5f5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181c;--card:#1e2429;--tx:#e8eaed;--mut:#9aa0a6;--bd:#37404a;--g1:#81c784;--g2:#2e7d32;--hl:#4a4520;--th:#24352a;--pre:#262d33}}
+:root[data-theme="dark"]{--bg:#14181c;--card:#1e2429;--tx:#e8eaed;--mut:#9aa0a6;--bd:#37404a;--g1:#81c784;--g2:#2e7d32;--hl:#4a4520;--th:#24352a;--pre:#262d33}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:var(--tx)}
+header{background:#1b5e20;color:#fff;text-align:center;padding:16px 10px}
+header h1{margin:0;font-size:28px}header p{margin:4px 0 0;font-size:14px}
+nav{display:flex;justify-content:center;background:#2e7d32;flex-wrap:wrap}
+nav button{background:none;color:#fff;border:0;padding:12px 22px;font-size:16px;cursor:pointer;margin:0;border-radius:0}
+nav button.active{background:var(--bg);color:var(--g1);font-weight:bold}
+main{max-width:960px;margin:0 auto;padding:10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:14px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:18px;color:var(--g1)}
+label{display:block;margin-bottom:8px;font-weight:bold}
+input,select{padding:7px;border:1px solid #999;border-radius:4px;font-size:14px;margin:2px 4px 6px 0;background:var(--card);color:var(--tx)}
+label input,label select{display:block;width:100%;max-width:360px}
+button{background:var(--g2);color:#fff;border:0;border-radius:4px;padding:8px 14px;font-size:14px;cursor:pointer;margin:2px 4px 6px 0}
+button:hover{filter:brightness(.9)}button.red{background:#c62828}button.sm{padding:4px 10px;font-size:13px}
+.row{display:flex;flex-wrap:wrap}.w{overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+th,td{border:1px solid var(--bd);padding:6px 8px;text-align:left}th{background:var(--th)}
+td input.q{width:62px;margin:0;padding:4px}
+.sn{font-weight:bold;margin-top:12px}.best{background:var(--hl)}.out{color:#e53935}
+.tag{background:#f9a825;color:#222;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:bold}
+#msg{max-width:960px;margin:10px auto 0;padding:10px 14px;border-radius:4px;font-weight:bold}
+#msg.good{background:#c8e6c9;color:#1b5e20}#msg.bad{background:#ffcdd2;color:#b71c1c}
+.st{padding:2px 8px;border-radius:10px;font-size:13px;color:#fff}.s0{background:#ef6c00}.s1{background:#1565c0}.s2{background:#2e7d32}
+.hidden{display:none}small,.em{color:var(--mut)}.em{font-style:italic;margin:8px 0}.tot{text-align:right;font-weight:bold;margin:8px 0}
+pre{background:var(--pre);padding:10px;border-radius:4px;overflow-x:auto}
+footer{text-align:center;font-size:13px;color:var(--mut);padding:16px 10px}
+</style>
+</head>
+<body>
+<header><h1>Local Shop Delivery System</h1><p>Team DSCPP-III-2026-T113</p></header>
+<nav>
+<button id="t-c" class="active" data-tab="c">Customer</button>
+<button id="t-s" data-tab="s">Shopkeeper</button>
+<button id="t-a" data-tab="a">Delivery Agent</button>
+</nav>
+<div id="msg" class="hidden"></div>
+<main>
+<section id="c">
+<div class="card"><label>Your name:<input id="name" placeholder="e.g. Aman"></label><small>Orders are tracked by name, so use the same name next time.</small></div>
+<div class="card"><h2>Compare prices</h2><input id="cq" placeholder="Search a product, e.g. rice"><button data-a="cmp">Compare</button><div id="cres"></div></div>
+<div class="card"><h2>Browse products</h2><div id="browse"></div></div>
+<div class="card"><h2>My cart</h2><div id="cart"></div>
+<div id="chk" class="hidden"><label>Your area:<select id="area"></select></label>
+<label>Delivery address / landmark:<input id="addr" placeholder="House no., landmark"></label>
+<button data-a="chk">Place order (Cash on delivery)</button></div></div>
+<div class="card"><h2>Search orders</h2><small>Order number, customer name, product or shop.</small><br>
+<input id="oq" placeholder="e.g. 1, Aman, Tea"><button data-a="osr">Search</button><div id="ores"></div></div>
+<div class="card"><h2>Track my orders</h2><button data-a="mine">Refresh</button><div id="mine"></div></div>
+</section>
+
+<section id="s" class="hidden">
+<div class="card"><label>Select your shop:<select id="shop"></select></label></div>
+<div class="card"><h2>Add / update product</h2>
+<div class="row"><input id="pi" type="number" placeholder="Product ID (1-9999)"><input id="pn" placeholder="Name"><input id="pp" type="number" placeholder="Price (Rs)"><input id="ps" type="number" placeholder="Quantity"></div>
+<button data-a="padd">Add product</button><button data-a="pupd">Update product</button></div>
+<div class="card"><h2>Stock</h2><div id="stock"></div></div>
+<div class="card"><h2>Orders of my shop</h2><button data-a="acc">Accept next pending order</button><div id="sord"></div></div>
+</section>
+
+<section id="a" class="hidden">
+<div class="card"><h2>Register delivery agent</h2><div class="row"><input id="an" placeholder="Agent name"><select id="aa"></select><button data-a="aadd">Register</button></div></div>
+<div class="card"><h2>Delivery agents</h2><div id="agents"></div></div>
+<div class="card"><h2>All orders</h2><p>After the shopkeeper accepts an order, assign the nearest free agent (Dijkstra).</p><div id="all"></div></div>
+<div class="card"><h2>Town map (distance in km)</h2><pre>Main Market --4-- Bus Stand
+Main Market --2-- Temple Road
+Bus Stand   --5-- School Road
+Temple Road --3-- School Road
+Temple Road --6-- Hill Colony
+School Road --4-- River Side
+Hill Colony --2-- River Side</pre><button class="red" data-a="reset">Reset demo data</button></div>
+</section>
+</main>
+<footer><p>DSCPP Project | B.Tech CSE 3rd Semester | Graphic Era (Deemed to be University)<br>Shaurya Bisht, Mayank Ranjan, Raj Vardhan, Aradhay Singh</p>
+<p>DSA used: Hash Table, Linked List, Queue, Insertion Sort, Graph + Dijkstra</p></footer>
+
+<script>
+var AREAS=["Main Market","Bus Stand","Temple Road","School Road","Hill Colony","River Side"];
+var EDGES=[[0,1,4],[0,2,2],[1,3,5],[2,3,3],[2,4,6],[3,5,4],[4,5,2]];
+var ST=["Pending","Accepted","Delivered"];
+var S, timer;
+function fresh(){
+  function P(a){return a.map(function(x){return{id:x[0],name:x[1],price:x[2],stock:x[3]}})}
+  return{shops:[
+    {id:1,name:"Negi General Store",owner:"Negi",area:"Main Market",P:P([[1,"Rice",60,50],[2,"Sugar",45,30],[3,"Tea",120,20]])},
+    {id:2,name:"Devi Kirana",owner:"Devi",area:"Bus Stand",P:P([[1,"Rice",55,40],[2,"Sugar",48,25],[3,"Salt",20,60]])},
+    {id:3,name:"Sharma General Store",owner:"Ramesh Sharma",area:"Temple Road",P:P([[1,"Atta",230,30],[2,"Rice",58,50]])}],
+    orders:[],agents:[{id:1,name:"Rohit",loc:1,free:true},{id:2,name:"Imran",loc:4,free:true}],carts:{},oid:0,aid:2};
+}
+function save(){try{localStorage.setItem("localkart",JSON.stringify(S))}catch(e){}}
+function load(){try{var j=localStorage.getItem("localkart");if(j)return JSON.parse(j)}catch(e){}return fresh()}
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function say(t,ok){var m=$("msg");m.textContent=t;m.className=ok?"good":"bad";clearTimeout(timer);timer=setTimeout(function(){m.className="hidden"},5000)}
+function me(){return $("name").value.trim()}
+function key(){return me().toLowerCase()}
+function shopOf(id){return S.shops.filter(function(s){return s.id==id})[0]}
+function prodOf(s,id){return s.P.filter(function(p){return p.id==id})[0]}
+function inCart(k,sid,pid){var n=0;(S.carts[k]||[]).forEach(function(c){if(c.s==sid&&c.p==pid)n+=c.q});return n}
+
+// Dijkstra on the town graph
+function dijkstra(src){
+  var d=[],done=[],i;for(i=0;i<6;i++){d[i]=1e9;done[i]=false}d[src]=0;
+  for(var k=0;k<6;k++){var u=-1;for(i=0;i<6;i++)if(!done[i]&&(u<0||d[i]<d[u]))u=i;if(u<0||d[u]>=1e9)break;done[u]=true;
+    EDGES.forEach(function(e){var v=e[0]==u?e[1]:e[1]==u?e[0]:-1;if(v>=0&&d[u]+e[2]<d[v])d[v]=d[u]+e[2]})}
+  return d;
+}
+
+function badge(o){return '<span class="st s'+o.st+'">'+ST[o.st]+'</span>'}
+function prog(o){return '<small>[X] Placed '+(o.st>=1?'[X]':'[ ]')+' Accepted '+(o.ag?'[X]':'[ ]')+' Agent '+(o.st>=2?'[X]':'[ ]')+' Delivered</small>'}
+function otable(list,act){
+  if(!list.length)return '<p class="em">No orders found.</p>';
+  var h='<div class="w"><table><tr><th>#</th><th>Customer</th><th>Shop</th><th>Product</th><th>Qty</th><th>Total</th><th>Area / address</th><th>Status</th><th>Progress</th>'+(act?'<th>Action</th>':'')+'</tr>';
+  list.forEach(function(o){
+    h+='<tr><td>'+o.id+'</td><td>'+esc(o.cust)+'</td><td>'+esc(o.shop)+'</td><td>'+esc(o.prod)+'</td><td>'+o.qty+'</td><td>Rs '+o.total+'</td><td>'+AREAS[o.loc]+'<br><small>'+esc(o.addr)+'</small></td><td>'+badge(o)+'</td><td>'+prog(o)+'</td>';
+    if(act)h+='<td>'+(o.st==1&&!o.ag?'<button class="sm" data-a="asg" data-o="'+o.id+'">Assign nearest agent</button>':o.st==1?'<button class="sm" data-a="done" data-o="'+o.id+'">Mark delivered</button>':o.st==0?'<small>Waiting for shopkeeper</small>':'<small>Done</small>')+'</td>';
+    h+='</tr>';
+  });
+  return h+'</table></div>';
+}
+function prow(sid,p,sn,area,best,idp){
+  var id=idp+sid+"-"+p.id;
+  return '<tr'+(best?' class="best"':'')+'>'+(sn?'<td>'+esc(sn)+'</td><td>'+esc(area)+'</td>':'')+'<td>'+p.id+'</td><td>'+esc(p.name)+'</td><td>Rs '+p.price+(best?' <span class="tag">cheapest</span>':'')+'</td>'+
+    (p.stock>0?'<td>'+p.stock+'</td><td><input class="q" type="number" min="1" max="'+p.stock+'" value="1" id="'+id+'"> <button class="sm" data-a="add" data-s="'+sid+'" data-p="'+p.id+'" data-q="'+id+'">Add</button></td>':'<td class="out">Out of stock</td><td>-</td>')+'</tr>';
+}
+
+function renderAll(){
+  // customer
+  var h="";
+  S.shops.forEach(function(s){
+    h+='<div class="sn">'+esc(s.name)+' <small>('+esc(s.area)+', owner: '+esc(s.owner)+')</small></div>';
+    h+=s.P.length?'<div class="w"><table><tr><th>ID</th><th>Product</th><th>Price</th><th>Stock</th><th>Add to cart</th></tr>'+s.P.map(function(p){return prow(s.id,p,0,0,false,"b")}).join("")+'</table></div>':'<p class="em">No products yet.</p>';
+  });
+  $("browse").innerHTML=h;
+  renderCart();renderMine();
+  // shop
+  var sv=$("shop").value||"1";
+  $("shop").innerHTML=S.shops.map(function(s){return '<option value="'+s.id+'">'+esc(s.name)+' ('+esc(s.area)+')</option>'}).join("");
+  $("shop").value=sv;
+  var sh=shopOf($("shop").value)||S.shops[0];
+  $("stock").innerHTML=sh.P.length?'<div class="w"><table><tr><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Action</th></tr>'+sh.P.map(function(p){
+    return '<tr><td>'+p.id+'</td><td>'+esc(p.name)+'</td><td>Rs '+p.price+'</td><td'+(p.stock?'':' class="out"')+'>'+p.stock+'</td><td><button class="sm" data-a="edit" data-p="'+p.id+'">Edit</button> <button class="sm red" data-a="del" data-p="'+p.id+'">Delete</button></td></tr>'}).join("")+'</table></div>':'<p class="em">No products yet.</p>';
+  $("sord").innerHTML=otable(S.orders.filter(function(o){return o.shop==sh.name}),false);
+  // agents
+  $("agents").innerHTML='<div class="w"><table><tr><th>ID</th><th>Name</th><th>Current area</th><th>Status</th></tr>'+S.agents.map(function(a){return '<tr><td>'+a.id+'</td><td>'+esc(a.name)+'</td><td>'+AREAS[a.loc]+'</td><td>'+(a.free?"Available":"On delivery")+'</td></tr>'}).join("")+'</table></div>';
+  $("all").innerHTML=otable(S.orders,true);
+}
+function renderCart(){
+  var k=key(),c=S.carts[k]||[];
+  if(!k){$("cart").innerHTML='<p class="em">Enter your name above to start a cart.</p>';$("chk").className="hidden";return}
+  if(!c.length){$("cart").innerHTML='<p class="em">Your cart is empty.</p>';$("chk").className="hidden";return}
+  var t=0,h='<div class="w"><table><tr><th>No.</th><th>Shop</th><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th><th></th></tr>';
+  c.forEach(function(x,i){var s=shopOf(x.s),p=prodOf(s,x.p);t+=p.price*x.q;
+    h+='<tr><td>'+(i+1)+'</td><td>'+esc(s.name)+'</td><td>'+esc(p.name)+'</td><td>Rs '+p.price+'</td><td>'+x.q+'</td><td>Rs '+p.price*x.q+'</td><td><button class="sm red" data-a="rm" data-i="'+i+'">Remove</button></td></tr>'});
+  $("cart").innerHTML=h+'</table></div><div class="tot">Total: Rs '+t+'</div>';
+  $("chk").className="";
+}
+function renderMine(){
+  var k=key();
+  $("mine").innerHTML=!k?'<p class="em">Enter your name to see your orders.</p>':otable(S.orders.filter(function(o){return o.cust.toLowerCase()==k}),false);
+}
+
+function act(a,el){
+  var d=el?el.dataset:{},sh,p,k=key();
+  if(a=="add"){
+    if(!k)return say("Enter your name first.",false);
+    sh=shopOf(d.s);p=prodOf(sh,d.p);var q=parseInt($(d.q).value,10),can=p.stock-inCart(k,sh.id,p.id);
+    if(can<=0)return say("You already have all the available stock in your cart.",false);
+    if(!(q>=1&&q<=can))return say("Quantity must be between 1 and "+can+".",false);
+    S.carts[k]=S.carts[k]||[];var f=S.carts[k].filter(function(c){return c.s==sh.id&&c.p==p.id})[0];
+    if(f)f.q+=q;else S.carts[k].push({s:sh.id,p:p.id,q:q});
+    say("Added "+q+" x "+p.name+" from "+sh.name+".",true);
+  }else if(a=="rm"){S.carts[k].splice(+d.i,1);say("Item removed from cart.",true)}
+  else if(a=="chk"){
+    var c=S.carts[k]||[],ar=$("area").value,ad=$("addr").value.trim();
+    if(!c.length)return say("Your cart is empty.",false);
+    if(ar==="")return say("Please choose your area.",false);
+    if(!ad)return say("Please enter the delivery address / landmark.",false);
+    for(var i=0;i<c.length;i++){var s2=shopOf(c[i].s),p2=prodOf(s2,c[i].p);
+      if(!p2||p2.stock<c[i].q)return say("Item not available in this quantity now. Remove it and try again.",false)}
+    var ids=[],tot=0;
+    c.forEach(function(x){var s3=shopOf(x.s),p3=prodOf(s3,x.p);p3.stock-=x.q;S.oid++;tot+=p3.price*x.q;
+      S.orders.push({id:S.oid,cust:me(),shop:s3.name,prod:p3.name,qty:x.q,total:p3.price*x.q,addr:ad,loc:+ar,st:0,ag:0});ids.push("#"+S.oid)});
+    S.carts[k]=[];$("addr").value="";
+    say("Order(s) "+ids.join(", ")+" placed! Please keep Rs "+tot+" ready (Cash on delivery).",true);
+  }else if(a=="padd"||a=="pupd"){
+    sh=shopOf($("shop").value);var id=parseInt($("pi").value,10),nm=$("pn").value.trim(),pr=parseInt($("pp").value,10),stq=parseInt($("ps").value,10);
+    if(!(id>=1&&id<=9999))return say("Product ID must be 1-9999.",false);
+    if(!nm)return say("Product name cannot be empty.",false);
+    if(!(pr>=1&&pr<=100000))return say("Price must be 1-100000.",false);
+    if(!(stq>=0&&stq<=100000))return say("Quantity must be 0-100000.",false);
+    p=prodOf(sh,id);
+    if(a=="padd"){if(p)return say("Product with this ID already exists!",false);sh.P.push({id:id,name:nm,price:pr,stock:stq});say("Product added successfully.",true)}
+    else{if(!p)return say("Product not found!",false);p.name=nm;p.price=pr;p.stock=stq;say("Product updated successfully.",true)}
+    ["pi","pn","pp","ps"].forEach(function(i){$(i).value=""});
+  }else if(a=="edit"){p=prodOf(shopOf($("shop").value),d.p);$("pi").value=p.id;$("pn").value=p.name;$("pp").value=p.price;$("ps").value=p.stock;return say("Loaded in the form. Change values and click Update product.",true)}
+  else if(a=="del"){sh=shopOf($("shop").value);sh.P=sh.P.filter(function(x){return x.id!=d.p});say("Product deleted successfully.",true)}
+  else if(a=="acc"){
+    sh=shopOf($("shop").value);var o=S.orders.filter(function(x){return x.st==0&&x.shop==sh.name})[0];   // oldest first (queue order)
+    if(!o)return say("No pending orders for your shop.",false);o.st=1;say("Order #"+o.id+" ("+o.qty+" x "+o.prod+") accepted.",true);
+  }else if(a=="aadd"){
+    var an=$("an").value.trim();if(!an)return say("Agent name cannot be empty.",false);if($("aa").value==="")return say("Choose a valid area.",false);
+    S.aid++;S.agents.push({id:S.aid,name:an,loc:+$("aa").value,free:true});$("an").value="";say("Agent registered. Agent ID: "+S.aid,true);
+  }else if(a=="asg"){
+    var od=S.orders.filter(function(x){return x.id==d.o})[0],dist=dijkstra(od.loc),best=null;
+    S.agents.forEach(function(g){if(g.free&&dist[g.loc]<1e9&&(!best||dist[g.loc]<dist[best.loc]))best=g});
+    if(!best)return say("No available agent can reach this location.",false);
+    best.free=false;od.ag=best.id;say("Assigned to "+best.name+" ("+dist[best.loc]+" km from the customer, found with Dijkstra).",true);
+  }else if(a=="done"){
+    var o2=S.orders.filter(function(x){return x.id==d.o})[0];o2.st=2;
+    S.agents.forEach(function(g){if(g.id==o2.ag){g.free=true;g.loc=o2.loc}});say("Order marked Delivered. The agent is available again.",true);
+  }else if(a=="reset"){if(!confirm("Reset all demo data?"))return;S=fresh();say("Demo data reset.",true)}
+  else if(a=="cmp"){
+    var q2=$("cq").value.trim().toLowerCase();if(!q2)return say("Type a product name to compare.",false);
+    var offs=[];S.shops.forEach(function(s){s.P.forEach(function(p){if(p.name.toLowerCase().indexOf(q2)>=0)offs.push({s:s,p:p})})});
+    for(var i2=1;i2<offs.length;i2++){var cur=offs[i2],j=i2-1;while(j>=0&&offs[j].p.price>cur.p.price){offs[j+1]=offs[j];j--}offs[j+1]=cur}   // insertion sort
+    $("cres").innerHTML=offs.length?'<div class="w"><table><tr><th>Shop</th><th>Area</th><th>ID</th><th>Product</th><th>Price</th><th>Stock</th><th>Add to cart</th></tr>'+offs.map(function(o,i){return prow(o.s.id,o.p,o.s.name,o.s.area,i==0,"c")}).join("")+'</table></div>':'<p class="em">No shop sells "'+esc(q2)+'".</p>';
+    return;
+  }else if(a=="osr"){
+    var q3=$("oq").value.trim().toLowerCase().replace(/^#/,"");if(!q3)return say("Type an order number, name, product or shop.",false);
+    var res=S.orders.filter(function(o){return String(o.id)==q3||o.cust.toLowerCase().indexOf(q3)>=0||o.prod.toLowerCase().indexOf(q3)>=0||o.shop.toLowerCase().indexOf(q3)>=0});
+    $("ores").innerHTML=otable(res,false);return;
+  }else if(a=="mine"){}
+  save();
+  var cr=$("cres").innerHTML,orr=$("ores").innerHTML;renderAll();
+  if(a=="add"||a=="chk"){if($("cq").value.trim())act("cmp")}
+  if(a=="chk"&&$("oq").value.trim())act("osr");
+}
+
+document.addEventListener("click",function(e){
+  var el=e.target.closest("[data-a],[data-tab]");if(!el)return;
+  if(el.dataset.tab){["c","s","a"].forEach(function(t){$(t).classList.toggle("hidden",t!=el.dataset.tab);$("t-"+t).classList.toggle("active",t==el.dataset.tab)});renderAll();return}
+  act(el.dataset.a,el);
+});
+document.addEventListener("keydown",function(e){
+  if(e.key!="Enter")return;
+  if(e.target.id=="cq")act("cmp");if(e.target.id=="oq")act("osr");
+});
+$("shop").addEventListener("change",renderAll);
+$("name").addEventListener("input",function(){try{localStorage.setItem("lkname",me())}catch(e){}renderCart();renderMine()});
+S=load();
+var opts='<option value="">-- choose area --</option>'+AREAS.map(function(a,i){return '<option value="'+i+'">'+a+'</option>'}).join("");
+$("area").innerHTML=opts;$("aa").innerHTML=opts;
+try{$("name").value=localStorage.getItem("lkname")||""}catch(e){}
+renderAll();
+</script>
+</body>
+</html>
