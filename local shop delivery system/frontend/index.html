@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalKart - Local Shop Delivery System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>LocalKart</h1>
+    <p>Local Shop Delivery System &nbsp;|&nbsp; Team DSCPP-III-2026-T113</p>
+  </header>
+
+  <nav>
+    <button id="tab-customer" class="active" onclick="showTab('customer')">Customer</button>
+    <button id="tab-shop" onclick="showTab('shop')">Shopkeeper</button>
+    <button id="tab-agent" onclick="showTab('agent')">Delivery Agent</button>
+  </nav>
+
+  <div id="message" class="message hidden"></div>
+
+  <main>
+
+    <!-- ================= CUSTOMER ================= -->
+    <section id="customer" class="page">
+      <div class="card">
+        <label>Your name:
+          <input type="text" id="custName" placeholder="e.g. Aman" oninput="saveName()">
+        </label>
+        <small>Orders are tracked by name, so use the same name next time.</small>
+      </div>
+
+      <div class="card">
+        <h2>Compare prices</h2>
+        <input type="text" id="searchBox" placeholder="Search a product, e.g. rice">
+        <button onclick="comparePrices()">Compare</button>
+        <div id="compareResult"></div>
+      </div>
+
+      <div class="card">
+        <h2>Browse products</h2>
+        <div id="shopList"></div>
+      </div>
+
+      <div class="card">
+        <h2>My cart</h2>
+        <div id="cartBox"></div>
+        <div id="checkoutForm" class="hidden">
+          <label>Your area:
+            <select id="areaSelect"></select>
+          </label>
+          <label>Delivery address / landmark:
+            <input type="text" id="address" placeholder="House no., landmark">
+          </label>
+          <button onclick="checkout()">Place order (Cash on delivery)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Track my orders</h2>
+        <button onclick="loadMyOrders()">Refresh</button>
+        <div id="myOrders"></div>
+      </div>
+    </section>
+
+    <!-- ================= SHOPKEEPER ================= -->
+    <section id="shop" class="page hidden">
+      <div class="card">
+        <label>Select your shop:
+          <select id="shopSelect" onchange="loadShopPage()"></select>
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>Add / update product</h2>
+        <div class="row">
+          <input type="number" id="pId" placeholder="Product ID (1-9999)">
+          <input type="text" id="pName" placeholder="Name">
+          <input type="number" id="pPrice" placeholder="Price (Rs)">
+          <input type="number" id="pStock" placeholder="Quantity">
+        </div>
+        <button onclick="addProduct()">Add product</button>
+        <button onclick="updateProduct()">Update product</button>
+      </div>
+
+      <div class="card">
+        <h2>Stock</h2>
+        <div id="stockTable"></div>
+      </div>
+
+      <div class="card">
+        <h2>Orders of my shop</h2>
+        <button onclick="acceptOrder()">Accept next pending order</button>
+        <button onclick="loadShopOrders()">Refresh</button>
+        <div id="shopOrders"></div>
+      </div>
+    </section>
+
+    <!-- ================= DELIVERY AGENT ================= -->
+    <section id="agent" class="page hidden">
+      <div class="card">
+        <h2>Register delivery agent</h2>
+        <div class="row">
+          <input type="text" id="agentName" placeholder="Agent name">
+          <select id="agentArea"></select>
+          <button onclick="addAgent()">Register</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Delivery agents</h2>
+        <div id="agentTable"></div>
+      </div>
+
+      <div class="card">
+        <h2>All orders</h2>
+        <p>Assign the nearest free agent (Dijkstra) after the shopkeeper accepts an order.</p>
+        <button onclick="loadAgentPage()">Refresh</button>
+        <div id="allOrders"></div>
+      </div>
+
+      <div class="card">
+        <h2>Town map (distance in km)</h2>
+        <pre>
+Main Market --4-- Bus Stand
+Main Market --2-- Temple Road
+Bus Stand   --5-- School Road
+Temple Road --3-- School Road
+Temple Road --6-- Hill Colony
+School Road --4-- River Side
+Hill Colony --2-- River Side</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>DSCPP Project | B.Tech CSE 3rd Semester | Graphic Era (Deemed to be University)<br>
+    Shaurya Bisht, Mayank Ranjan, Raj Vardhan, Aradhay Singh</p>
+    <p>DSA used: Hash Table, Linked List, Queue, Insertion Sort, Graph + Dijkstra</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

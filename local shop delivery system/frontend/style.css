@@ -1,0 +1,103 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: #f2f4f7;
+  color: #222;
+}
+
+header {
+  background: #1b5e20;
+  color: white;
+  text-align: center;
+  padding: 16px 10px;
+}
+header h1 { margin: 0; font-size: 30px; }
+header p { margin: 4px 0 0; font-size: 14px; }
+
+nav {
+  display: flex;
+  justify-content: center;
+  background: #2e7d32;
+}
+nav button {
+  background: none;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+}
+nav button.active { background: #f2f4f7; color: #1b5e20; font-weight: bold; }
+
+main { max-width: 900px; margin: 0 auto; padding: 10px; }
+
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.card h2 { margin: 0 0 10px; font-size: 18px; color: #1b5e20; }
+
+label { display: block; margin-bottom: 8px; font-weight: bold; }
+input, select {
+  padding: 7px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 14px;
+  margin: 2px 4px 6px 0;
+}
+label input, label select { display: block; width: 100%; max-width: 360px; }
+
+button {
+  background: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 2px 4px 6px 0;
+}
+button:hover { background: #1b5e20; }
+button.red { background: #c62828; }
+button.small { padding: 4px 10px; font-size: 13px; }
+
+.row { display: flex; flex-wrap: wrap; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+th { background: #e8f5e9; }
+
+.shopname { font-weight: bold; margin-top: 12px; }
+.cheapest { background: #fff9c4; }
+.out { color: #c62828; }
+
+.message {
+  max-width: 900px;
+  margin: 10px auto 0;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.message.good { background: #c8e6c9; color: #1b5e20; }
+.message.bad { background: #ffcdd2; color: #b71c1c; }
+
+.status { padding: 2px 8px; border-radius: 10px; font-size: 13px; color: white; }
+.s0 { background: #ef6c00; }
+.s1 { background: #1565c0; }
+.s2 { background: #2e7d32; }
+
+.hidden { display: none; }
+small { color: #666; }
+pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
+
+footer {
+  text-align: center;
+  font-size: 13px;
+  color: #555;
+  padding: 16px 10px;
+}
