@@ -1,0 +1,55 @@
+// ===========================================================================
+//  LOCAL SHOP DELIVERY SYSTEM  -  C++ backend (console + text-file storage)
+//  Blinkit-style workflow, but every order is fulfilled by a LOCAL SHOP.
+//
+//  Compile :  g++ local_shop_delivery.cpp -o lsds
+//  Run     :  ./lsds          (first run creates the .txt data files)
+//  Admin   :  phone 9999999999   password admin123
+//
+//  MODULES (search for the banners to split the file among team members)
+//   MODULE 1 : Common helpers, fee settings, area graph + Dijkstra
+//   MODULE 2 : Shop Management   (hash tables: catalog + shop inventory)
+//   MODULE 3 : Order Management  (FIFO queue, linked list, status flow,
+//                                 shop allocation, fees, ETA, tracking)
+//   MODULE 4 : Customer          (cart, compare prices, checkout)
+//   MODULE 5 : Delivery Agent    (rider dispatch, delivery steps, earnings)
+//   MODULE 6 : Admin, file storage and main()
+// ===========================================================================
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+using namespace std;
+
+// ============================ MODULE 1 =====================================
+// ---------- fee settings (change them here only) ----------
+const double COMMISSION_PERCENT  = 10;  // platform commission on item total
+const double BASE_DELIVERY_FEE   = 20;
+const double FEE_PER_KM          = 5;
+const double MIN_CART_VALUE      = 100; // below this a small-cart fee is added
+const double SMALL_CART_FEE      = 15;
+const double PLATFORM_FEE        = 5;
+const double AGENT_SHARE_PERCENT = 80;  // agent gets this % of delivery fee
+const int PACK_TIME_MIN     = 5;        // minutes to pack an order
+const int QUEUE_WAIT_MIN    = 3;        // extra minutes per order ahead in queue
+const int MIN_PER_KM        = 4;        // minutes to travel 1 km
+const int NO_AGENT_WAIT_MIN = 10;       // ETA add-on when no agent is free
+const int MAX_SERVICE_KM    = 8;        // shops farther than this cannot serve
+
+// ---------- size limits ----------
+const int MAX_USERS = 300, MAX_PRODUCTS = 500, MAX_SHOPS = 60;
+const int MAX_PAYMENTS = 2000, MAX_ITEMS = 15, MAX_ROUTE = 30, MAX_TRIED = 6;
+const int HASH_SIZE = 101, AREA_N = 8, INF = 1000000;
+
+// ---------- constants ----------
+const int ROLE_CUSTOMER = 1, ROLE_SHOPKEEPER = 2, ROLE_AGENT = 3, ROLE_ADMIN = 4;
+const int PAY_COD = 1, PAY_UPI = 2, PAY_CARD = 3;
+const int PS_PENDING = 0, PS_PAID = 1, PS_REFUNDED = 2;
+const int ST_PLACED = 0, ST_ACCEPTED = 1, ST_PACKED = 2, ST_AGENT_ASSIGNED = 3;
+const int ST_PICKED_UP = 4, ST_DELIVERED = 5, ST_CANCELLED = 6, ST_REJECTED = 7;
+const char* STATUS_NAME[8] = {"PLACED", "ACCEPTED", "PACKED", "AGENT_ASSIGNED",
+                              "PICKED_UP", "DELIVERED", "CANCELLED", "REJECTED"};
+const char* AREA_NAME[AREA_N] = {"Market Chowk", "Bus Stand", "School Road",
+    "Temple Road", "Hospital Road", "Railway Colony", "Village Gate", "Hill Side"};
