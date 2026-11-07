@@ -53,3 +53,38 @@ const char* STATUS_NAME[8] = {"PLACED", "ACCEPTED", "PACKED", "AGENT_ASSIGNED",
                               "PICKED_UP", "DELIVERED", "CANCELLED", "REJECTED"};
 const char* AREA_NAME[AREA_N] = {"Market Chowk", "Bus Stand", "School Road",
     "Temple Road", "Hospital Road", "Railway Colony", "Village Gate", "Hill Side"};
+
+void saveAll();   // defined in MODULE 6
+
+string readLine(const string& prompt) {
+    string s;
+    cout << prompt;
+    if (!getline(cin, s)) {
+        cout << "\nInput closed. Saving and exiting.\n";
+        saveAll();
+        exit(0);
+    }
+    int a = 0, b = (int)s.size() - 1;
+    while (a <= b && (s[a] == ' ' || s[a] == '\t' || s[a] == '\r')) a++;
+    while (b >= a && (s[b] == ' ' || s[b] == '\t' || s[b] == '\r')) b--;
+    return s.substr(a, b - a + 1);
+}
+
+bool isNumber(const string& s) {
+    if (s.empty() || s.size() > 9) return false;
+    for (size_t i = 0; i < s.size(); i++)
+        if (s[i] < '0' || s[i] > '9') return false;
+    return true;
+}
+
+// reads a whole number in [lo, hi]; keeps asking until the input is valid
+int readInt(const string& prompt, int lo, int hi) {
+    while (true) {
+        string s = readLine(prompt);
+        if (isNumber(s)) {
+            int v = atoi(s.c_str());
+            if (v >= lo && v <= hi) return v;
+        }
+        cout << "  Please enter a whole number from " << lo << " to " << hi << ".\n";
+    }
+}
