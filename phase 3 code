@@ -88,3 +88,22 @@ int readInt(const string& prompt, int lo, int hi) {
         cout << "  Please enter a whole number from " << lo << " to " << hi << ".\n";
     }
 }
+
+// reads a money value like 45 or 45.50 in [lo, hi]
+double readMoney(const string& prompt, double lo, double hi) {
+    while (true) {
+        string s = readLine(prompt);
+        bool ok = !s.empty() && s.size() <= 9;
+        int dots = 0, digits = 0;
+        for (size_t i = 0; i < s.size(); i++) {
+            if (s[i] == '.') dots++;
+            else if (s[i] >= '0' && s[i] <= '9') digits++;
+            else ok = false;
+        }
+        if (ok && dots <= 1 && digits > 0) {
+            double v = atof(s.c_str());
+            if (v >= lo && v <= hi) return v;
+        }
+        cout << "  Please enter an amount from " << lo << " to " << hi << ".\n";
+    }
+}
