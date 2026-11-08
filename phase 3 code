@@ -107,3 +107,16 @@ double readMoney(const string& prompt, double lo, double hi) {
         cout << "  Please enter an amount from " << lo << " to " << hi << ".\n";
     }
 }
+string cleanText(string s) {            // '|' and ';' are used in the data files
+    for (size_t i = 0; i < s.size(); i++)
+        if (s[i] == '|' || s[i] == ';') s[i] = ' ';
+    return s;
+}
+
+string readName(const string& prompt) {
+    while (true) {
+        string s = cleanText(readLine(prompt));
+        if (!s.empty() && s.size() <= 30) return s;
+        cout << "  Enter 1 to 30 characters.\n";
+    }
+}
