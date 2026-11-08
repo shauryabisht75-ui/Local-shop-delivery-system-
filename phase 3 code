@@ -140,3 +140,9 @@ string money(double v) {
     snprintf(b, sizeof(b), "%.2f", v);
     return string("Rs.") + b;
 }
+string timeText(long long t) {
+    time_t tt = (time_t)t;
+    char buf[40];
+    strftime(buf, sizeof(buf), "%d-%m-%Y %H:%M", localtime(&tt));
+    return string(buf);
+}
