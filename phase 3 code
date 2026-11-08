@@ -120,3 +120,12 @@ string readName(const string& prompt) {
         cout << "  Enter 1 to 30 characters.\n";
     }
 }
+string toLower(string s) {
+    for (size_t i = 0; i < s.size(); i++)
+        if (s[i] >= 'A' && s[i] <= 'Z') s[i] = s[i] + 32;
+    return s;
+}
+
+bool contains(const string& text, const string& key) {
+    return text.find(key) != string::npos;
+}
