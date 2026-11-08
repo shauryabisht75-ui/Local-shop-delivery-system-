@@ -129,3 +129,14 @@ string toLower(string s) {
 bool contains(const string& text, const string& key) {
     return text.find(key) != string::npos;
 }
+string hashPassword(const string& p) {  // simple djb2 hash, passwords are not stored as plain text
+    unsigned long long h = 5381;
+    for (size_t i = 0; i < p.size(); i++) h = h * 33 + (unsigned char)p[i];
+    return to_string(h);
+}
+
+string money(double v) {
+    char b[40];
+    snprintf(b, sizeof(b), "%.2f", v);
+    return string("Rs.") + b;
+}
