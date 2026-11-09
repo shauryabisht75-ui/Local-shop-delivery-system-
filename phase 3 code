@@ -146,3 +146,15 @@ string timeText(long long t) {
     strftime(buf, sizeof(buf), "%d-%m-%Y %H:%M", localtime(&tt));
     return string(buf);
 }
+int splitLine(const string& line, string parts[], int maxParts) {
+    int count = 0;
+    string cur = "";
+    for (size_t i = 0; i < line.size(); i++) {
+        if (line[i] == '|') {
+            if (count < maxParts) parts[count++] = cur;
+            cur = "";
+        } else if (line[i] != '\r') cur += line[i];
+    }
+    if (count < maxParts) parts[count++] = cur;
+    return count;
+}
