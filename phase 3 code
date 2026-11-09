@@ -186,3 +186,13 @@ void dijkstra(int src, int dist[], int parent[]) {
             }
     }
 }
+// fills path[] with the areas from src to dst, returns its length (0 = no road)
+int buildPath(int src, int dst, int path[]) {
+    int dist[AREA_N], parent[AREA_N];
+    dijkstra(src, dist, parent);
+    if (dist[dst] >= INF) return 0;
+    int temp[AREA_N], len = 0, cur = dst;
+    while (cur != -1) { temp[len++] = cur; cur = parent[cur]; }
+    for (int i = 0; i < len; i++) path[i] = temp[len - 1 - i];
+    return len;
+}
