@@ -203,3 +203,16 @@ int chooseArea(const string& prompt) {
     printAreas();
     return readInt(prompt, 1, AREA_N) - 1;
 }
+void printMap() {
+    cout << "\nAREA MAP (roads and distances)\n";
+    for (int i = 0; i < AREA_N; i++) {
+        printf("  %-15s : ", AREA_NAME[i]);
+        bool first = true;
+        for (int j = 0; j < AREA_N; j++)
+            if (graph[i][j] > 0) {
+                printf("%s%s (%d km)", first ? "" : ", ", AREA_NAME[j], graph[i][j]);
+                first = false;
+            }
+        printf("\n");
+    }
+}
