@@ -158,3 +158,13 @@ int splitLine(const string& line, string parts[], int maxParts) {
     if (count < maxParts) parts[count++] = cur;
     return count;
 }
+// ---------- area graph (adjacency matrix, distances in km) ----------
+int graph[AREA_N][AREA_N];
+
+void addRoad(int a, int b, int km) { graph[a][b] = km; graph[b][a] = km; }
+
+void defaultRoads() {
+    addRoad(0, 1, 2); addRoad(0, 2, 1); addRoad(0, 3, 3); addRoad(1, 4, 2);
+    addRoad(2, 3, 2); addRoad(2, 5, 3); addRoad(3, 6, 4); addRoad(4, 5, 1);
+    addRoad(5, 7, 4); addRoad(6, 7, 2);
+}
