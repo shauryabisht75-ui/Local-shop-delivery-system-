@@ -303,3 +303,16 @@ public:
     void cancelOrder();
     void changeLocation();
 };
+class Shopkeeper : public User {
+public:
+    Shopkeeper() { role = ROLE_SHOPKEEPER; }
+    void menu();
+    Shop* myShop();
+    void createShop();
+    void addUpdateProduct();
+    void removeProduct();
+    void viewInventory();
+    void processNextOrder();
+    void packOrders();
+    void shopOrders();
+};
