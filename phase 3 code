@@ -216,3 +216,60 @@ void printMap() {
         printf("\n");
     }
 }
+// ============================ SHARED TYPES =================================
+struct Product { int id; string name; string category; string unit; };
+
+struct OrderItem { int productId; int qty; double price; };
+
+struct Order {
+    int id, customerId, shopId, agentId, status;
+    double itemTotal, deliveryFee, smallCartFee, platformFee;
+    int paymentMode, allocMode, deliveryArea;
+    long long createdAt;
+    int itemCount;
+    OrderItem items[MAX_ITEMS];
+    int pathLen, pathPos, shopIdx;      // delivery route (agent -> shop -> customer)
+    int path[MAX_ROUTE];
+    int triedCount;                     // shops that already rejected this order
+    int tried[MAX_TRIED];
+    Order* next;                        // linked list of all orders
+};
+
+struct Payment { int id; int orderId; int mode; int status; };
+
+struct QNode { Order* order; QNode* next; };
+
+// FIFO queue of orders (linked implementation)
+class OrderQueue {
+    QNode* front;
+    QNode* rear;
+public:
+    OrderQueue() { front = NULL; rear = NULL; }
+    void enqueue(Order* o) {
+        QNode* n = new QNode;
+        n->order = o; n->next = NULL;
+        if (rear == NULL) { front = n; rear = n; }
+        else { rear->next = n; rear = n; }
+    }
+    void dequeue() {
+        if (front == NULL) return;
+        QNode* t = front;
+        front = front->next;
+        if (front == NULL) rear = NULL;
+        delete t;
+    }
+    Order* peek() { return front == NULL ? NULL : front->order; }
+    bool empty() { return front == NULL; }
+    // drops orders at the front that were cancelled or moved to another shop
+    void skipInvalid(int status, int shopId) {
+        while (front != NULL && !(front->order->status == status &&
+               (shopId < 0 || front->order->shopId == shopId)))
+            dequeue();
+    }
+    int count(int status, int shopId) {
+        int c = 0;
+        for (QNode* p = front; p != NULL; p = p->next)
+            if (p->order->status == status && (shopId < 0 || p->order->shopId == shopId)) c++;
+        return c;
+    }
+};
