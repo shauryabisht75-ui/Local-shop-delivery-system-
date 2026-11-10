@@ -316,3 +316,16 @@ public:
     void packOrders();
     void shopOrders();
 };
+class DeliveryAgent : public User {
+public:
+    int currentArea;
+    bool isFree;
+    DeliveryAgent() { role = ROLE_AGENT; currentArea = 0; isFree = true; }
+    void menu();
+    Order* currentOrder();
+    void showStatus();
+    void moveNext();
+    void confirmPickup();
+    void confirmDelivery();
+    void earnings();
+};
