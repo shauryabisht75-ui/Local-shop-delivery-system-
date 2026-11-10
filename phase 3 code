@@ -287,3 +287,19 @@ public:
     virtual ~User() {}
     virtual void menu() = 0;
 };
+class Customer : public User {
+public:
+    CartItem cart[MAX_ITEMS];
+    int cartCount;
+    Customer() { role = ROLE_CUSTOMER; cartCount = 0; }
+    void menu();
+    void browseCatalog();
+    void searchProduct();
+    void comparePrices();
+    void addToCart();
+    void viewCart();
+    void checkout();
+    void myOrders();
+    void cancelOrder();
+    void changeLocation();
+};
