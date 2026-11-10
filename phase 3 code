@@ -273,3 +273,17 @@ public:
         return c;
     }
 };
+struct Shop { int id; int ownerId; string name; int areaNode; OrderQueue pending; };
+
+struct CartItem { int productId; int qty; };
+
+struct Candidate { int shopIndex; int dist; double itemTotal; double deliveryFee; double grand; };
+
+// ---------- classes (inheritance: User -> Customer / Shopkeeper / DeliveryAgent / Admin) ----------
+class User {
+public:
+    int id; string name; string phone; string passHash; int role; int areaNode;
+    User() { id = 0; role = 0; areaNode = 0; }
+    virtual ~User() {}
+    virtual void menu() = 0;
+};
