@@ -329,3 +329,13 @@ public:
     void confirmDelivery();
     void earnings();
 };
+class Admin : public User {
+public:
+    Admin() { role = ROLE_ADMIN; }
+    void menu();
+    void addCatalogProduct();
+    void viewShops();
+    void viewUsers();
+    void viewOrders();
+    void settlementReport();
+};
