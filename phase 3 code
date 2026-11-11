@@ -339,3 +339,12 @@ public:
     void viewOrders();
     void settlementReport();
 };
+// ---------- global data ----------
+Product products[MAX_PRODUCTS];  int productCount = 0;
+Shop shops[MAX_SHOPS];           int shopCount = 0;
+User* users[MAX_USERS];          int userCount = 0;
+Payment payments[MAX_PAYMENTS];  int paymentCount = 0;
+Order* orderHead = NULL;
+Order* orderTail = NULL;
+OrderQueue dispatchQueue;        // packed orders waiting for a free agent
+int nextProductId = 1, nextShopId = 1, nextUserId = 1, nextOrderId = 1, nextPaymentId = 1;
