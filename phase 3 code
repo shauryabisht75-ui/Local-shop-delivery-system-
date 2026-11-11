@@ -373,3 +373,4 @@ double platformEarning(Order* o);
 // ============================ MODULE 2 =====================================
 // SHOP MANAGEMENT: hash tables for shop inventory and for the product catalog
 struct InvNode { int shopId; int productId; double price; int stock; InvNode* next; };
+// hash table with chaining: key = (shopId, productId)
