@@ -348,3 +348,25 @@ Order* orderHead = NULL;
 Order* orderTail = NULL;
 OrderQueue dispatchQueue;        // packed orders waiting for a free agent
 int nextProductId = 1, nextShopId = 1, nextUserId = 1, nextOrderId = 1, nextPaymentId = 1;
+// ---------- prototypes of functions used across modules ----------
+Shop* findShop(int id);
+Product* findProduct(int id);
+Order* findOrder(int id);
+User* findUser(int id);
+bool changeStatus(Order* o, int to);
+int findCandidates(int pid[], int qty[], int n, int custArea, int tried[], int triedCount, Candidate out[]);
+void sortCandidates(Candidate c[], int n, int mode);
+void assignShopToOrder(Order* o, int shopIndex, int dist);
+void restoreStock(Order* o);
+void rejectOrder(Order* o, Shop* s);
+int estimateEta(int shopIndex, int dist);
+void trackOrder(Order* o);
+void printOrderDetails(Order* o);
+Payment* findPayment(int orderId);
+Payment* addPayment(int orderId, int mode, int status);
+double grandTotal(Order* o);
+void dispatchOrder(Order* o);
+void processDispatchQueue();
+double shopEarning(Order* o);
+double agentEarning(Order* o);
+double platformEarning(Order* o);
