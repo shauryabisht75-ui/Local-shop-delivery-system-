@@ -374,3 +374,6 @@ double platformEarning(Order* o);
 // SHOP MANAGEMENT: hash tables for shop inventory and for the product catalog
 struct InvNode { int shopId; int productId; double price; int stock; InvNode* next; };
 // hash table with chaining: key = (shopId, productId)
+class InventoryTable {
+    InvNode* bucket[HASH_SIZE];
+    int hashKey(int shopId, int productId) { return (shopId * 31 + productId) % HASH_SIZE; }
