@@ -370,3 +370,5 @@ void processDispatchQueue();
 double shopEarning(Order* o);
 double agentEarning(Order* o);
 double platformEarning(Order* o);
+// ============================ MODULE 2 =====================================
+// SHOP MANAGEMENT: hash tables for shop inventory and for the product catalog
