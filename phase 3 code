@@ -377,3 +377,10 @@ struct InvNode { int shopId; int productId; double price; int stock; InvNode* ne
 class InventoryTable {
     InvNode* bucket[HASH_SIZE];
     int hashKey(int shopId, int productId) { return (shopId * 31 + productId) % HASH_SIZE; }
+public:
+    InventoryTable() { for (int i = 0; i < HASH_SIZE; i++) bucket[i] = NULL; }
+    InvNode* find(int shopId, int productId) {
+        for (InvNode* p = bucket[hashKey(shopId, productId)]; p != NULL; p = p->next)
+            if (p->shopId == shopId && p->productId == productId) return p;
+        return NULL;
+    }
