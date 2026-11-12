@@ -406,3 +406,4 @@ void set(int shopId, int productId, double price, int stock) {
     }
 InvNode* head(int i) { return bucket[i]; }
 };
+// hash table: lower-case product name -> product id (stops duplicate products)
