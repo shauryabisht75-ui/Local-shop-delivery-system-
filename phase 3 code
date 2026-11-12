@@ -392,3 +392,15 @@ void set(int shopId, int productId, double price, int stock) {
         int h = hashKey(shopId, productId);
         p->next = bucket[h];
         bucket[h] = p;
+}
+    bool remove(int shopId, int productId) {
+        int h = hashKey(shopId, productId);
+        InvNode* prev = NULL;
+        for (InvNode* p = bucket[h]; p != NULL; prev = p, p = p->next)
+            if (p->shopId == shopId && p->productId == productId) {
+                if (prev == NULL) bucket[h] = p->next; else prev->next = p->next;
+                delete p;
+                return true;
+            }
+        return false;
+    }
