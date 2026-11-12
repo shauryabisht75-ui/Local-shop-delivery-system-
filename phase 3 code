@@ -384,3 +384,11 @@ public:
             if (p->shopId == shopId && p->productId == productId) return p;
         return NULL;
     }
+void set(int shopId, int productId, double price, int stock) {
+        InvNode* p = find(shopId, productId);
+        if (p != NULL) { p->price = price; p->stock = stock; return; }
+        p = new InvNode;
+        p->shopId = shopId; p->productId = productId; p->price = price; p->stock = stock;
+        int h = hashKey(shopId, productId);
+        p->next = bucket[h];
+        bucket[h] = p;
