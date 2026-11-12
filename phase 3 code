@@ -404,3 +404,5 @@ void set(int shopId, int productId, double price, int stock) {
             }
         return false;
     }
+InvNode* head(int i) { return bucket[i]; }
+};
