@@ -437,3 +437,8 @@ Product* findProduct(int id) {
         if (products[i].id == id) return &products[i];
     return NULL;
 }
+Shop* findShop(int id) {
+    for (int i = 0; i < shopCount; i++)
+        if (shops[i].id == id) return &shops[i];
+    return NULL;
+}
