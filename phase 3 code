@@ -432,3 +432,8 @@ int find(const string& key) {
 };
 InventoryTable inventory;
 NameTable nameTable;
+Product* findProduct(int id) {
+    for (int i = 0; i < productCount; i++)
+        if (products[i].id == id) return &products[i];
+    return NULL;
+}
