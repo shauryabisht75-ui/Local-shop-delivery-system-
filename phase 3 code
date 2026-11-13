@@ -453,3 +453,14 @@ int addProduct(const string& name, const string& category, const string& unit) {
     return p.id;
 }
 // insertion sort of catalog indexes by product name
+void sortedCatalog(int idx[]) {
+    for (int i = 0; i < productCount; i++) idx[i] = i;
+    for (int i = 1; i < productCount; i++) {
+        int k = idx[i], j = i - 1;
+        while (j >= 0 && toLower(products[idx[j]].name) > toLower(products[k].name)) {
+            idx[j + 1] = idx[j];
+            j--;
+        }
+        idx[j + 1] = k;
+    }
+}
