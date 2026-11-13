@@ -452,3 +452,4 @@ int addProduct(const string& name, const string& category, const string& unit) {
     nameTable.insert(toLower(name), p.id);
     return p.id;
 }
+// insertion sort of catalog indexes by product name
