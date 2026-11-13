@@ -443,3 +443,12 @@ Shop* findShop(int id) {
     return NULL;
 }
 // adds a product to the master catalog; returns its id (0 = duplicate or full)
+int addProduct(const string& name, const string& category, const string& unit) {
+    if (productCount >= MAX_PRODUCTS) return 0;
+    if (nameTable.find(toLower(name)) != 0) return 0;
+    Product& p = products[productCount++];
+    p.id = nextProductId++;
+    p.name = name; p.category = category; p.unit = unit;
+    nameTable.insert(toLower(name), p.id);
+    return p.id;
+}
