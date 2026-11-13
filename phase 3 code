@@ -430,3 +430,5 @@ int find(const string& key) {
         return 0;
     }
 };
+InventoryTable inventory;
+NameTable nameTable;
