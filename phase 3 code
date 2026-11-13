@@ -442,3 +442,4 @@ Shop* findShop(int id) {
         if (shops[i].id == id) return &shops[i];
     return NULL;
 }
+// adds a product to the master catalog; returns its id (0 = duplicate or full)
