@@ -424,3 +424,9 @@ public:
         n->next = bucket[h];
         bucket[h] = n;
     }
+int find(const string& key) {
+        for (NameNode* p = bucket[hashText(key)]; p != NULL; p = p->next)
+            if (p->key == key) return p->productId;
+        return 0;
+    }
+};
