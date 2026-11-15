@@ -465,3 +465,15 @@ void sortedCatalog(int idx[]) {
     }
 }
 // how many shops have this product in stock; 'low' = lowest price among them
+int stockingShops(int productId, double& low) {
+    int c = 0;
+    low = 0;
+    for (int i = 0; i < shopCount; i++) {
+        InvNode* n = inventory.find(shops[i].id, productId);
+        if (n != NULL && n->stock > 0) {
+            if (c == 0 || n->price < low) low = n->price;
+            c++;
+        }
+    }
+    return c;
+}
