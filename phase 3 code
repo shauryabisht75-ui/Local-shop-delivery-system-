@@ -477,3 +477,8 @@ int stockingShops(int productId, double& low) {
     }
     return c;
 }
+Shop* Shopkeeper::myShop() {
+    for (int i = 0; i < shopCount; i++)
+        if (shops[i].ownerId == id) return &shops[i];
+    return NULL;
+}
