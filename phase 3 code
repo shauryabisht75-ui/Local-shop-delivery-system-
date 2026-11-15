@@ -482,3 +482,14 @@ Shop* Shopkeeper::myShop() {
         if (shops[i].ownerId == id) return &shops[i];
     return NULL;
 }
+void Shopkeeper::createShop() {
+    if (shopCount >= MAX_SHOPS) { cout << "Shop limit reached.\n"; return; }
+    Shop& s = shops[shopCount];
+    s.id = nextShopId++;
+    s.ownerId = id;
+    s.name = readName("Shop name: ");
+    s.areaNode = chooseArea("Area of your shop (number): ");
+    shopCount++;
+    saveAll();
+    cout << "Shop created. Now add products from the catalog.\n";
+}
