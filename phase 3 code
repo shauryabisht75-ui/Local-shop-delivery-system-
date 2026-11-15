@@ -514,3 +514,10 @@ int pid = readInt("\nProduct id to add/update (0 = back): ", 0, 999999);
     saveAll();
     cout << "Saved: " << p->name << " at " << money(price) << ", stock " << stock << ".\n";
 }
+void Shopkeeper::removeProduct() {
+    Shop* s = myShop();
+    int pid = readInt("Product id to remove from your shop (0 = back): ", 0, 999999);
+    if (pid == 0) return;
+    if (inventory.remove(s->id, pid)) { saveAll(); cout << "Removed.\n"; }
+    else cout << "Your shop does not sell that product.\n";
+}
