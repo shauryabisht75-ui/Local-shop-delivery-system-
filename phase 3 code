@@ -493,3 +493,14 @@ void Shopkeeper::createShop() {
     saveAll();
     cout << "Shop created. Now add products from the catalog.\n";
 }
+void Shopkeeper::addUpdateProduct() {
+    Shop* s = myShop();
+    int idx[MAX_PRODUCTS];
+    sortedCatalog(idx);
+    printf("\n%-5s %-26s %-22s %-9s %-10s %s\n", "ID", "Product", "Category", "Unit", "My price", "My stock");
+    for (int i = 0; i < productCount; i++) {
+        Product& p = products[idx[i]];
+        InvNode* n = inventory.find(s->id, p.id);
+        printf("%-5d %-26s %-22s %-9s %-10s %s\n", p.id, p.name.c_str(), p.category.c_str(),
+               p.unit.c_str(), n ? money(n->price).c_str() : "-", n ? to_string(n->stock).c_str() : "-");
+    }
