@@ -538,3 +538,4 @@ void Shopkeeper::viewInventory() {
     }
     if (shown == 0) cout << "  (no products yet)\n";
 }
+// shopkeeper takes orders from the FRONT of the queue (first come, first served)
