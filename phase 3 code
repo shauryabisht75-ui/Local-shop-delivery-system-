@@ -464,3 +464,4 @@ void sortedCatalog(int idx[]) {
         idx[j + 1] = k;
     }
 }
+// how many shops have this product in stock; 'low' = lowest price among them
