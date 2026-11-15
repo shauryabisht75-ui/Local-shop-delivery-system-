@@ -539,3 +539,22 @@ void Shopkeeper::viewInventory() {
     if (shown == 0) cout << "  (no products yet)\n";
 }
 // shopkeeper takes orders from the FRONT of the queue (first come, first served)
+void Shopkeeper::processNextOrder() {
+    Shop* s = myShop();
+    s->pending.skipInvalid(ST_PLACED, s->id);
+    Order* o = s->pending.peek();
+    if (o == NULL) { cout << "No new orders waiting.\n"; return; }
+    cout << "\nNext order in your queue:\n";
+    printOrderDetails(o);
+    cout << "1. Accept\n2. Reject (cannot fulfil)\n0. Back\n";
+    int c = readInt("Choice: ", 0, 2);
+    if (c == 0) return;
+    s->pending.dequeue();
+    if (c == 1) {
+        changeStatus(o, ST_ACCEPTED);
+        cout << "Order accepted. Pack it, then mark it as packed.\n";
+    } else {
+        rejectOrder(o, s);
+    }
+    saveAll();
+}
