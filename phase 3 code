@@ -641,3 +641,4 @@ User* findUser(int id) {
         if (users[i]->id == id) return users[i];
     return NULL;
 }
+// only these status changes are allowed
