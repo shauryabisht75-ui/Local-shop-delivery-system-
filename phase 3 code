@@ -631,3 +631,8 @@ while (true) {
 }
 // ============================ MODULE 3 =====================================
 // ORDER MANAGEMENT: linked list of orders, status flow, allocation, fees, ETA
+Order* findOrder(int id) {
+    for (Order* o = orderHead; o != NULL; o = o->next)
+        if (o->id == id) return o;
+    return NULL;
+}
