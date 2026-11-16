@@ -601,3 +601,7 @@ for (Order* o = orderHead; o != NULL; o = o->next) {
         shown++;
         if (o->status == ST_DELIVERED) { earned += shopEarning(o); delivered++; }
     }
+if (shown == 0) cout << "  (no orders yet)\n";
+    printf("Delivered orders: %d | Your earnings after %.0f%% commission: %s\n",
+           delivered, COMMISSION_PERCENT, money(earned).c_str());
+}
