@@ -605,3 +605,9 @@ if (shown == 0) cout << "  (no orders yet)\n";
     printf("Delivered orders: %d | Your earnings after %.0f%% commission: %s\n",
            delivered, COMMISSION_PERCENT, money(earned).c_str());
 }
+void Shopkeeper::menu() {
+    if (myShop() == NULL) {
+        cout << "You have no shop yet. Let's create it.\n";
+        createShop();
+        if (myShop() == NULL) return;
+    }
