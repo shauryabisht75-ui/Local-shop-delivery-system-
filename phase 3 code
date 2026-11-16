@@ -611,3 +611,21 @@ void Shopkeeper::menu() {
         createShop();
         if (myShop() == NULL) return;
     }
+while (true) {
+        Shop* s = myShop();
+        s->pending.skipInvalid(ST_PLACED, s->id);
+        printf("\n===== SHOPKEEPER: %s (%s) =====\n", s->name.c_str(), AREA_NAME[s->areaNode]);
+        printf("New orders waiting: %d\n", s->pending.count(ST_PLACED, s->id));
+        cout << "1. Add / update a product\n2. Remove a product\n3. View my inventory\n"
+             << "4. Process next new order (accept / reject)\n5. Mark accepted orders as packed\n"
+             << "6. My orders and earnings\n0. Logout\n";
+        int c = readInt("Choice: ", 0, 6);
+        if (c == 0) return;
+        if (c == 1) addUpdateProduct();
+        else if (c == 2) removeProduct();
+        else if (c == 3) viewInventory();
+        else if (c == 4) processNextOrder();
+        else if (c == 5) packOrders();
+        else shopOrders();
+    }
+}
