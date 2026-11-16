@@ -636,3 +636,8 @@ Order* findOrder(int id) {
         if (o->id == id) return o;
     return NULL;
 }
+User* findUser(int id) {
+    for (int i = 0; i < userCount; i++)
+        if (users[i]->id == id) return users[i];
+    return NULL;
+}
