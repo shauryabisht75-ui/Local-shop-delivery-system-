@@ -567,3 +567,11 @@ void Shopkeeper::packOrders() {
             printf("  Order #%d  %s  %d item line(s)\n", o->id, money(o->itemTotal).c_str(), o->itemCount);
             found++;
         }
+if (found == 0) { cout << "  (none)\n"; return; }
+    int oid = readInt("Order id (0 = back): ", 0, 999999);
+    if (oid == 0) return;
+    Order* o = findOrder(oid);
+    if (o == NULL || o->shopId != s->id || o->status != ST_ACCEPTED) {
+        cout << "That is not an accepted order of your shop.\n";
+        return;
+    }
