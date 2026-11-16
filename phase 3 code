@@ -558,3 +558,12 @@ void Shopkeeper::processNextOrder() {
     }
     saveAll();
 }
+void Shopkeeper::packOrders() {
+    Shop* s = myShop();
+    int found = 0;
+    cout << "\nAccepted orders waiting to be packed:\n";
+    for (Order* o = orderHead; o != NULL; o = o->next)
+        if (o->shopId == s->id && o->status == ST_ACCEPTED) {
+            printf("  Order #%d  %s  %d item line(s)\n", o->id, money(o->itemTotal).c_str(), o->itemCount);
+            found++;
+        }
