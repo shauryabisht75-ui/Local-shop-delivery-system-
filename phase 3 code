@@ -642,3 +642,14 @@ User* findUser(int id) {
     return NULL;
 }
 // only these status changes are allowed
+bool validMove(int from, int to) {
+    if (from == ST_PLACED)
+        return to == ST_ACCEPTED || to == ST_CANCELLED || to == ST_REJECTED;
+    if (from == ST_ACCEPTED)
+        return to == ST_PACKED || to == ST_CANCELLED || to == ST_REJECTED;
+    if (from == ST_PACKED) return to == ST_AGENT_ASSIGNED;
+    if (from == ST_AGENT_ASSIGNED) return to == ST_PICKED_UP;
+    if (from == ST_PICKED_UP) return to == ST_DELIVERED;
+    if (from == ST_REJECTED) return to == ST_PLACED;   // re-allocated to the next shop
+    return false;
+}
