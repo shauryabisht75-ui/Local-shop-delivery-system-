@@ -587,3 +587,9 @@ cout << "1. Mark as packed (ready for pickup)\n2. Cannot fulfil (reject)\n0. Bac
         saveAll();
     }
 }
+void Shopkeeper::shopOrders() {
+    Shop* s = myShop();
+    double earned = 0;
+    int delivered = 0;
+    printf("\n%-6s %-17s %-15s %-12s %s\n", "Order", "Placed at", "Status", "Items", "Customer");
+    int shown = 0;
