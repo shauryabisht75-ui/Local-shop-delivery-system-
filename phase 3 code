@@ -630,3 +630,4 @@ while (true) {
     }
 }
 // ============================ MODULE 3 =====================================
+// ORDER MANAGEMENT: linked list of orders, status flow, allocation, fees, ETA
