@@ -575,3 +575,15 @@ if (found == 0) { cout << "  (none)\n"; return; }
         cout << "That is not an accepted order of your shop.\n";
         return;
     }
+cout << "1. Mark as packed (ready for pickup)\n2. Cannot fulfil (reject)\n0. Back\n";
+    int c = readInt("Choice: ", 0, 2);
+    if (c == 1) {
+        changeStatus(o, ST_PACKED);
+        cout << "Order #" << o->id << " is packed.\n";
+        dispatchOrder(o);
+        saveAll();
+    } else if (c == 2) {
+        rejectOrder(o, s);
+        saveAll();
+    }
+}
