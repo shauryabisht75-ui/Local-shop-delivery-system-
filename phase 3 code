@@ -593,3 +593,11 @@ void Shopkeeper::shopOrders() {
     int delivered = 0;
     printf("\n%-6s %-17s %-15s %-12s %s\n", "Order", "Placed at", "Status", "Items", "Customer");
     int shown = 0;
+for (Order* o = orderHead; o != NULL; o = o->next) {
+        if (o->shopId != s->id) continue;
+        User* u = findUser(o->customerId);
+        printf("#%-5d %-17s %-15s %-12s %s\n", o->id, timeText(o->createdAt).c_str(),
+               STATUS_NAME[o->status], money(o->itemTotal).c_str(), u ? u->name.c_str() : "?");
+        shown++;
+        if (o->status == ST_DELIVERED) { earned += shopEarning(o); delivered++; }
+    }
