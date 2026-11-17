@@ -670,3 +670,8 @@ Order* newOrderNode() {
     else { orderTail->next = o; orderTail = o; }
     return o;
 }
+Payment* findPayment(int orderId) {
+    for (int i = 0; i < paymentCount; i++)
+        if (payments[i].orderId == orderId) return &payments[i];
+    return NULL;
+}
