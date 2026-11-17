@@ -701,3 +701,4 @@ const char* payStatusName(int s) {
 double grandTotal(Order* o) {
     return o->itemTotal + o->deliveryFee + o->smallCartFee + o->platformFee;
 }
+// ---------- revenue split ----------
