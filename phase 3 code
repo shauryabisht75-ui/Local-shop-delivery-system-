@@ -675,3 +675,9 @@ Payment* findPayment(int orderId) {
         if (payments[i].orderId == orderId) return &payments[i];
     return NULL;
 }
+Payment* addPayment(int orderId, int mode, int status) {
+    if (paymentCount >= MAX_PAYMENTS) return NULL;
+    Payment& p = payments[paymentCount++];
+    p.id = nextPaymentId++; p.orderId = orderId; p.mode = mode; p.status = status;
+    return &p;
+}
