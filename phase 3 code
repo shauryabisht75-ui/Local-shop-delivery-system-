@@ -662,3 +662,11 @@ bool changeStatus(Order* o, int to) {
     return true;
 }
 // appends a new order at the end of the linked list
+Order* newOrderNode() {
+    Order* o = new Order();
+    o->id = nextOrderId++;
+    o->next = NULL;
+    if (orderTail == NULL) { orderHead = o; orderTail = o; }
+    else { orderTail->next = o; orderTail = o; }
+    return o;
+}
