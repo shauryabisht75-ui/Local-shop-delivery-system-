@@ -661,3 +661,4 @@ bool changeStatus(Order* o, int to) {
     o->status = to;
     return true;
 }
+// appends a new order at the end of the linked list
