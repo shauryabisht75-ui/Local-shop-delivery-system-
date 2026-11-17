@@ -681,3 +681,10 @@ Payment* addPayment(int orderId, int mode, int status) {
     p.id = nextPaymentId++; p.orderId = orderId; p.mode = mode; p.status = status;
     return &p;
 }
+void refundIfPaid(Order* o) {
+    Payment* p = findPayment(o->id);
+    if (p != NULL && p->status == PS_PAID) {
+        p->status = PS_REFUNDED;
+        cout << "  Payment of " << money(grandTotal(o)) << " will be refunded to the customer.\n";
+    }
+}
