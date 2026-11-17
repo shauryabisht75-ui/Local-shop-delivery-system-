@@ -653,3 +653,11 @@ bool validMove(int from, int to) {
     if (from == ST_REJECTED) return to == ST_PLACED;   // re-allocated to the next shop
     return false;
 }
+bool changeStatus(Order* o, int to) {
+    if (!validMove(o->status, to)) {
+        cout << "  Invalid status change: " << STATUS_NAME[o->status] << " -> " << STATUS_NAME[to] << "\n";
+        return false;
+    }
+    o->status = to;
+    return true;
+}
