@@ -698,3 +698,6 @@ const char* payStatusName(int s) {
     if (s == PS_REFUNDED) return "REFUNDED";
     return "PENDING";
 }
+double grandTotal(Order* o) {
+    return o->itemTotal + o->deliveryFee + o->smallCartFee + o->platformFee;
+}
