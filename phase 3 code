@@ -688,3 +688,8 @@ void refundIfPaid(Order* o) {
         cout << "  Payment of " << money(grandTotal(o)) << " will be refunded to the customer.\n";
     }
 }
+const char* payModeName(int mode) {
+    if (mode == PAY_COD) return "Cash on Delivery";
+    if (mode == PAY_UPI) return "UPI (simulated)";
+    return "Card (simulated)";
+}
