@@ -702,3 +702,6 @@ double grandTotal(Order* o) {
     return o->itemTotal + o->deliveryFee + o->smallCartFee + o->platformFee;
 }
 // ---------- revenue split ----------
+double shopEarning(Order* o) { return o->itemTotal * (100 - COMMISSION_PERCENT) / 100; }
+double agentEarning(Order* o) { return o->deliveryFee * AGENT_SHARE_PERCENT / 100; }
+double platformEarning(Order* o) { return grandTotal(o) - shopEarning(o) - agentEarning(o); }
