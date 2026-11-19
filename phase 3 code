@@ -748,3 +748,10 @@ bool isBetter(const Candidate& a, const Candidate& b, int mode) {
     if (a.grand != b.grand) return a.grand < b.grand;
     return a.dist < b.dist;
 }
+void sortCandidates(Candidate c[], int n, int mode) {   // bubble sort
+    for (int i = 0; i < n - 1; i++)
+        for (int j = 0; j < n - 1 - i; j++)
+            if (isBetter(c[j + 1], c[j], mode)) {
+                Candidate t = c[j]; c[j] = c[j + 1]; c[j + 1] = t;
+            }
+}
