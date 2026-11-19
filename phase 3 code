@@ -756,3 +756,18 @@ void sortCandidates(Candidate c[], int n, int mode) {   // bubble sort
             }
 }
 // gives the order to a shop: prices, stock reservation, fees, and joins the shop queue
+void assignShopToOrder(Order* o, int shopIndex, int dist) {
+    Shop* s = &shops[shopIndex];
+    o->shopId = s->id;
+    o->itemTotal = 0;
+    for (int i = 0; i < o->itemCount; i++) {
+        InvNode* node = inventory.find(s->id, o->items[i].productId);
+        o->items[i].price = node->price;
+        node->stock -= o->items[i].qty;                 // reserve stock now
+        o->itemTotal += node->price * o->items[i].qty;
+    }
+    o->deliveryFee = BASE_DELIVERY_FEE + FEE_PER_KM * dist;
+    o->smallCartFee = (o->itemTotal < MIN_CART_VALUE) ? SMALL_CART_FEE : 0;
+    o->platformFee = PLATFORM_FEE;
+    s->pending.enqueue(o);
+}
