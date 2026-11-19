@@ -736,3 +736,15 @@ int findCandidates(int pid[], int qty[], int n, int custArea, int tried[], int t
     return count;
 }
 // mode 1 = nearest, 2 = cheapest items, 3 = best overall (lowest item total + delivery fee)
+bool isBetter(const Candidate& a, const Candidate& b, int mode) {
+    if (mode == 1) {
+        if (a.dist != b.dist) return a.dist < b.dist;
+        return a.itemTotal < b.itemTotal;
+    }
+    if (mode == 2) {
+        if (a.itemTotal != b.itemTotal) return a.itemTotal < b.itemTotal;
+        return a.dist < b.dist;
+    }
+    if (a.grand != b.grand) return a.grand < b.grand;
+    return a.dist < b.dist;
+}
