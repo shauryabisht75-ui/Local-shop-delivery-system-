@@ -755,3 +755,4 @@ void sortCandidates(Candidate c[], int n, int mode) {   // bubble sort
                 Candidate t = c[j]; c[j] = c[j + 1]; c[j + 1] = t;
             }
 }
+// gives the order to a shop: prices, stock reservation, fees, and joins the shop queue
