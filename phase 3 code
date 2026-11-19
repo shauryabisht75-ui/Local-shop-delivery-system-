@@ -707,3 +707,31 @@ double agentEarning(Order* o) { return o->deliveryFee * AGENT_SHARE_PERCENT / 10
 double platformEarning(Order* o) { return grandTotal(o) - shopEarning(o) - agentEarning(o); }
 // ---------- shop allocation ----------
 // A shop can serve the cart only if it is within range AND has ALL items in stock.
+int findCandidates(int pid[], int qty[], int n, int custArea, int tried[], int triedCount, Candidate out[]) {
+    int dist[AREA_N], parent[AREA_N];
+    dijkstra(custArea, dist, parent);   // roads are two-way, so this is shop -> customer too
+    int count = 0;
+    for (int s = 0; s < shopCount; s++) {
+        bool skip = false;
+        for (int t = 0; t < triedCount; t++)
+            if (tried[t] == shops[s].id) skip = true;
+        if (skip) continue;
+        int d = dist[shops[s].areaNode];
+        if (d > MAX_SERVICE_KM) continue;
+        double total = 0;
+        bool ok = true;
+        for (int i = 0; i < n && ok; i++) {
+            InvNode* node = inventory.find(shops[s].id, pid[i]);
+            if (node == NULL || node->stock < qty[i]) ok = false;
+            else total += node->price * qty[i];
+        }
+        if (!ok) continue;
+        out[count].shopIndex = s;
+        out[count].dist = d;
+        out[count].itemTotal = total;
+        out[count].deliveryFee = BASE_DELIVERY_FEE + FEE_PER_KM * d;
+        out[count].grand = total + out[count].deliveryFee;
+        count++;
+    }
+    return count;
+}
