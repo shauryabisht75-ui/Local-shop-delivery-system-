@@ -771,3 +771,9 @@ void assignShopToOrder(Order* o, int shopIndex, int dist) {
     o->platformFee = PLATFORM_FEE;
     s->pending.enqueue(o);
 }
+void restoreStock(Order* o) {
+    for (int i = 0; i < o->itemCount; i++) {
+        InvNode* node = inventory.find(o->shopId, o->items[i].productId);
+        if (node != NULL) node->stock += o->items[i].qty;
+    }
+}
