@@ -735,3 +735,4 @@ int findCandidates(int pid[], int qty[], int n, int custArea, int tried[], int t
     }
     return count;
 }
+// mode 1 = nearest, 2 = cheapest items, 3 = best overall (lowest item total + delivery fee)
