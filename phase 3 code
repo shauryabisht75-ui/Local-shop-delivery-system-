@@ -802,3 +802,21 @@ sortCandidates(cand, n, o->allocMode);
 }
 // ---------- ETA ----------
 // ETA = packing time + queue wait + agent coming to the shop + shop -> customer travel
+int estimateEta(int shopIndex, int dist) {
+    int depth = shops[shopIndex].pending.count(ST_PLACED, shops[shopIndex].id);
+    int eta = PACK_TIME_MIN + depth * QUEUE_WAIT_MIN + dist * MIN_PER_KM;
+    int d = 0;
+    // nearest free agent (Dijkstra from the shop area)
+    int distArr[AREA_N], parent[AREA_N];
+    dijkstra(shops[shopIndex].areaNode, distArr, parent);
+    int best = INF;
+    for (int i = 0; i < userCount; i++) {
+        if (users[i]->role != ROLE_AGENT) continue;
+        DeliveryAgent* a = static_cast<DeliveryAgent*>(users[i]);
+        if (a->isFree && distArr[a->currentArea] < best) best = distArr[a->currentArea];
+    }
+    d = best;
+    if (d >= INF) eta += NO_AGENT_WAIT_MIN;
+    else eta += d * MIN_PER_KM;
+    return eta;
+}
