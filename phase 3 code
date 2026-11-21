@@ -820,3 +820,4 @@ int estimateEta(int shopIndex, int dist) {
     else eta += d * MIN_PER_KM;
     return eta;
 }
+// ---------- printing ----------
