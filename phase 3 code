@@ -821,3 +821,22 @@ int estimateEta(int shopIndex, int dist) {
     return eta;
 }
 // ---------- printing ----------
+void printOrderDetails(Order* o) {
+    Shop* s = findShop(o->shopId);
+    User* c = findUser(o->customerId);
+    printf("Order #%d | %s | Status: %s\n", o->id, timeText(o->createdAt).c_str(), STATUS_NAME[o->status]);
+    printf("Customer: %s | Deliver to: %s | Shop: %s\n", c ? c->name.c_str() : "?",
+           AREA_NAME[o->deliveryArea], s ? s->name.c_str() : "?");
+    for (int i = 0; i < o->itemCount; i++) {
+        Product* p = findProduct(o->items[i].productId);
+        printf("   %-26s %2d x %-10s = %s\n", p ? p->name.c_str() : "?", o->items[i].qty,
+               money(o->items[i].price).c_str(), money(o->items[i].price * o->items[i].qty).c_str());
+    }
+    printf("   Item total      : %s\n", money(o->itemTotal).c_str());
+    printf("   Delivery fee    : %s\n", money(o->deliveryFee).c_str());
+    if (o->smallCartFee > 0) printf("   Small-cart fee  : %s\n", money(o->smallCartFee).c_str());
+    printf("   Platform fee    : %s\n", money(o->platformFee).c_str());
+    printf("   TOTAL           : %s\n", money(grandTotal(o)).c_str());
+    Payment* p = findPayment(o->id);
+    printf("   Payment         : %s (%s)\n", payModeName(o->paymentMode), p ? payStatusName(p->status) : "-");
+}
