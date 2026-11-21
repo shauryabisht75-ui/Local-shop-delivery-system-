@@ -778,3 +778,8 @@ void restoreStock(Order* o) {
     }
 }
 // shop cannot fulfil: free the stock and try the next best shop
+void rejectOrder(Order* o, Shop* s) {
+    changeStatus(o, ST_REJECTED);
+    restoreStock(o);
+    if (o->triedCount < MAX_TRIED) o->tried[o->triedCount++] = s->id;
+    cout << "Order #" << o->id << " rejected by your shop.\n";
