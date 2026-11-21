@@ -783,3 +783,14 @@ void rejectOrder(Order* o, Shop* s) {
     restoreStock(o);
     if (o->triedCount < MAX_TRIED) o->tried[o->triedCount++] = s->id;
     cout << "Order #" << o->id << " rejected by your shop.\n";
+ int pid[MAX_ITEMS], qty[MAX_ITEMS];
+    for (int i = 0; i < o->itemCount; i++) { pid[i] = o->items[i].productId; qty[i] = o->items[i].qty; }
+    Candidate cand[MAX_SHOPS];
+    int n = 0;
+    if (o->triedCount < MAX_TRIED)
+        n = findCandidates(pid, qty, o->itemCount, o->deliveryArea, o->tried, o->triedCount, cand);
+    if (n == 0) {
+        cout << "No other shop can fulfil it. Order stays REJECTED.\n";
+        refundIfPaid(o);
+        return;
+    }
