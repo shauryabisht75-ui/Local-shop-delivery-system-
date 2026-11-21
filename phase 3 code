@@ -800,3 +800,5 @@ sortCandidates(cand, n, o->allocMode);
     cout << "Order #" << o->id << " re-allocated to " << shops[cand[0].shopIndex].name
          << ". New bill: " << money(grandTotal(o)) << "\n";
 }
+// ---------- ETA ----------
+// ETA = packing time + queue wait + agent coming to the shop + shop -> customer travel
