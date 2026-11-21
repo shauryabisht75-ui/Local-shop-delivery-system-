@@ -794,3 +794,9 @@ void rejectOrder(Order* o, Shop* s) {
         refundIfPaid(o);
         return;
     }
+sortCandidates(cand, n, o->allocMode);
+    changeStatus(o, ST_PLACED);
+    assignShopToOrder(o, cand[0].shopIndex, cand[0].dist);
+    cout << "Order #" << o->id << " re-allocated to " << shops[cand[0].shopIndex].name
+         << ". New bill: " << money(grandTotal(o)) << "\n";
+}
