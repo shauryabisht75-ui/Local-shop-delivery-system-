@@ -777,3 +777,4 @@ void restoreStock(Order* o) {
         if (node != NULL) node->stock += o->items[i].qty;
     }
 }
+// shop cannot fulfil: free the stock and try the next best shop
