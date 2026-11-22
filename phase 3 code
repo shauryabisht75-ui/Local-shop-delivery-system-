@@ -936,3 +936,196 @@ void Customer::comparePrices() {
                dist[s.areaNode], money(node->price).c_str(), node->stock);
     }
 }
+void Customer::addToCart() {
+    int pid = readInt("Product id to add (0 = back): ", 0, 999999);
+    if (pid == 0) return;
+    Product* p = findProduct(pid);
+    if (p == NULL) { cout << "No such product.\n"; return; }
+    double low;
+    if (stockingShops(pid, low) == 0) { cout << "No shop has " << p->name << " in stock right now.\n"; return; }
+    int qty = readInt("Quantity (1-50): ", 1, 50);
+    for (int i = 0; i < cartCount; i++)
+        if (cart[i].productId == pid) {
+            cart[i].qty += qty;
+            if (cart[i].qty > 50) cart[i].qty = 50;
+            cout << "Cart updated: " << p->name << " x " << cart[i].qty << "\n";
+            return;
+        }
+    if (cartCount >= MAX_ITEMS) { cout << "Cart is full (" << MAX_ITEMS << " different items).\n"; return; }
+    cart[cartCount].productId = pid;
+    cart[cartCount].qty = qty;
+    cartCount++;
+    cout << "Added: " << p->name << " x " << qty << "\n";
+}
+
+void Customer::viewCart() {
+    if (cartCount == 0) { cout << "Your cart is empty.\n"; return; }
+    cout << "\nYOUR CART\n";
+    for (int i = 0; i < cartCount; i++) {
+        Product* p = findProduct(cart[i].productId);
+        printf("  %d. %-26s x %d (%s)\n", i + 1, p->name.c_str(), cart[i].qty, p->unit.c_str());
+    }
+    cout << "1. Remove an item\n2. Clear cart\n0. Back\n";
+    int c = readInt("Choice: ", 0, 2);
+    if (c == 1) {
+        int k = readInt("Item number to remove: ", 1, cartCount);
+        for (int i = k - 1; i + 1 < cartCount; i++) cart[i] = cart[i + 1];
+        cartCount--;
+        cout << "Removed.\n";
+    } else if (c == 2) {
+        cartCount = 0;
+        cout << "Cart cleared.\n";
+    }
+}
+
+// asks for payment details (simulated). Card/UPI details are never stored.
+bool collectPayment(int mode) {
+    if (mode == PAY_COD) return true;
+    if (mode == PAY_UPI) {
+        while (true) {
+            string upi = readLine("Enter UPI id like name@bank (0 = cancel): ");
+            if (upi == "0") return false;
+            if (upi.size() >= 5 && contains(upi, "@") && upi[0] != '@' && upi[upi.size() - 1] != '@') break;
+            cout << "  Invalid UPI id.\n";
+        }
+        cout << "UPI payment successful (simulated).\n";
+        return true;
+    }
+    while (true) {
+        string card = readLine("Enter 16-digit card number (0 = cancel): ");
+        if (card == "0") return false;
+        if (card.size() == 16 && isNumber(card.substr(0, 8)) && isNumber(card.substr(8))) break;
+        cout << "  Card number must be 16 digits.\n";
+    }
+    while (true) {
+        string cvv = readLine("Enter 3-digit CVV: ");
+        if (cvv.size() == 3 && isNumber(cvv)) break;
+        cout << "  CVV must be 3 digits.\n";
+    }
+    cout << "Card payment successful (simulated).\n";
+    return true;
+}
+
+void Customer::checkout() {
+    if (cartCount == 0) { cout << "Your cart is empty.\n"; return; }
+    if (paymentCount >= MAX_PAYMENTS) { cout << "System is full. Try again later.\n"; return; }
+    int pid[MAX_ITEMS], qty[MAX_ITEMS];
+    for (int i = 0; i < cartCount; i++) { pid[i] = cart[i].productId; qty[i] = cart[i].qty; }
+
+    Candidate cand[MAX_SHOPS];
+    int n = findCandidates(pid, qty, cartCount, areaNode, NULL, 0, cand);
+    if (n == 0) {
+        cout << "\nNo shop within " << MAX_SERVICE_KM << " km has ALL items of your cart in stock.\n";
+        int dist[AREA_N], parent[AREA_N];
+        dijkstra(areaNode, dist, parent);
+        for (int i = 0; i < cartCount; i++) {
+            int shopsOk = 0;
+            for (int s = 0; s < shopCount; s++) {
+                InvNode* node = inventory.find(shops[s].id, pid[i]);
+                if (node != NULL && node->stock >= qty[i] && dist[shops[s].areaNode] <= MAX_SERVICE_KM) shopsOk++;
+            }
+            if (shopsOk == 0)
+                cout << "  - " << findProduct(pid[i])->name << " x " << qty[i]
+                     << " is not available near you (remove it or reduce the quantity)\n";
+        }
+        cout << "  (Or the items are in different shops: try splitting them into separate orders.)\n";
+        return;
+    }
+
+    cout << "\nHow should we pick the shop?\n1. Nearest shop\n2. Cheapest items\n"
+         << "3. Best overall (lowest items + delivery)\n0. Cancel\n";
+    int mode = readInt("Choice: ", 0, 3);
+    if (mode == 0) return;
+    sortCandidates(cand, n, mode);
+
+    printf("\nShops that can fulfil your order (ranked, top pick first):\n");
+    printf(" #  %-22s %-16s %4s %11s %10s %11s\n", "Shop", "Area", "Km", "Items", "Delivery", "Subtotal");
+    for (int i = 0; i < n && i < 5; i++) {
+        Shop& s = shops[cand[i].shopIndex];
+        printf("%2d  %-22s %-16s %4d %11s %10s %11s\n", i + 1, s.name.c_str(), AREA_NAME[s.areaNode],
+               cand[i].dist, money(cand[i].itemTotal).c_str(), money(cand[i].deliveryFee).c_str(),
+               money(cand[i].grand).c_str());
+    }
+    Candidate best = cand[0];
+    Shop& shop = shops[best.shopIndex];
+    double smallFee = (best.itemTotal < MIN_CART_VALUE) ? SMALL_CART_FEE : 0;
+    double total = best.itemTotal + best.deliveryFee + smallFee + PLATFORM_FEE;
+    int eta = estimateEta(best.shopIndex, best.dist);
+
+    printf("\nSelected shop: %s (%s)\n", shop.name.c_str(), AREA_NAME[shop.areaNode]);
+    for (int i = 0; i < cartCount; i++) {
+        InvNode* node = inventory.find(shop.id, pid[i]);
+        printf("   %-26s %2d x %-10s = %s\n", findProduct(pid[i])->name.c_str(), qty[i],
+               money(node->price).c_str(), money(node->price * qty[i]).c_str());
+    }
+    printf("   Item total      : %s\n", money(best.itemTotal).c_str());
+    printf("   Delivery fee    : %s (%d km)\n", money(best.deliveryFee).c_str(), best.dist);
+    if (smallFee > 0)
+        printf("   Small-cart fee  : %s (cart below %s)\n", money(smallFee).c_str(), money(MIN_CART_VALUE).c_str());
+    printf("   Platform fee    : %s\n", money(PLATFORM_FEE).c_str());
+    printf("   TOTAL           : %s\n", money(total).c_str());
+    printf("   Estimated time  : about %d minutes\n", eta);
+
+    cout << "\nPayment: 1. Cash on Delivery  2. UPI  3. Card  0. Cancel\n";
+    int mode2 = readInt("Choice: ", 0, 3);
+    if (mode2 == 0) { cout << "Checkout cancelled.\n"; return; }
+    if (!collectPayment(mode2)) { cout << "Payment cancelled. Order not placed.\n"; return; }
+
+    Order* o = newOrderNode();
+    o->customerId = id;
+    o->agentId = 0;
+    o->status = ST_PLACED;
+    o->paymentMode = mode2;
+    o->allocMode = mode;
+    o->deliveryArea = areaNode;
+    o->createdAt = (long long)time(0);
+    o->itemCount = cartCount;
+    for (int i = 0; i < cartCount; i++) { o->items[i].productId = pid[i]; o->items[i].qty = qty[i]; }
+    assignShopToOrder(o, best.shopIndex, best.dist);
+    addPayment(o->id, mode2, mode2 == PAY_COD ? PS_PENDING : PS_PAID);
+    cartCount = 0;
+    saveAll();
+    printf("\nORDER PLACED! Order id #%d  |  Total %s  |  ETA about %d min\n", o->id, money(total).c_str(), eta);
+}
+
+void Customer::myOrders() {
+    int found = 0;
+    printf("\n%-6s %-17s %-15s %-12s %s\n", "Order", "Placed at", "Status", "Total", "Shop");
+    for (Order* o = orderHead; o != NULL; o = o->next) {
+        if (o->customerId != id) continue;
+        Shop* s = findShop(o->shopId);
+        printf("#%-5d %-17s %-15s %-12s %s\n", o->id, timeText(o->createdAt).c_str(),
+               STATUS_NAME[o->status], money(grandTotal(o)).c_str(), s ? s->name.c_str() : "-");
+        found++;
+    }
+    if (found == 0) { cout << "  (you have no orders yet)\n"; return; }
+    int oid = readInt("Order id to track in detail (0 = back): ", 0, 999999);
+    if (oid == 0) return;
+    Order* o = findOrder(oid);
+    if (o == NULL || o->customerId != id) { cout << "Not your order.\n"; return; }
+    printOrderDetails(o);
+    trackOrder(o);
+}
+
+void Customer::cancelOrder() {
+    int found = 0;
+    cout << "\nOrders you can still cancel (before packing):\n";
+    for (Order* o = orderHead; o != NULL; o = o->next)
+        if (o->customerId == id && (o->status == ST_PLACED || o->status == ST_ACCEPTED)) {
+            printf("  Order #%d  %s  %s\n", o->id, STATUS_NAME[o->status], money(grandTotal(o)).c_str());
+            found++;
+        }
+    if (found == 0) { cout << "  (none)\n"; return; }
+    int oid = readInt("Order id to cancel (0 = back): ", 0, 999999);
+    if (oid == 0) return;
+    Order* o = findOrder(oid);
+    if (o == NULL || o->customerId != id) { cout << "Not your order.\n"; return; }
+    if (changeStatus(o, ST_CANCELLED)) {
+        restoreStock(o);
+        refundIfPaid(o);
+        saveAll();
+        cout << "Order #" << o->id << " cancelled.\n";
+    } else {
+        cout << "This order can no longer be cancelled.\n";
+    }
+}
