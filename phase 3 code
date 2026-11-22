@@ -890,3 +890,49 @@ void Customer::browseCatalog() {
     printf("\n%-5s %-26s %-22s %-9s %-11s %s\n", "ID", "Product", "Category", "Unit", "From price", "Shops");
     for (int i = 0; i < productCount; i++) printCatalogLine(products[idx[i]]);
 }
+void Customer::searchProduct() {
+    string key = toLower(readLine("Search (name or category): "));
+    if (key.empty()) return;
+    int idx[MAX_PRODUCTS];
+    sortedCatalog(idx);
+    int found = 0;
+    for (int i = 0; i < productCount; i++) {
+        Product& p = products[idx[i]];
+        if (contains(toLower(p.name), key) || contains(toLower(p.category), key)) {
+            if (found == 0)
+                printf("\n%-5s %-26s %-22s %-9s %-11s %s\n", "ID", "Product", "Category", "Unit", "From price", "Shops");
+            printCatalogLine(p);
+            found++;
+        }
+    }
+    if (found == 0) cout << "No product matches '" << key << "'.\n";
+}
+
+// same product in nearby shops, cheapest first
+void Customer::comparePrices() {
+    int pid = readInt("Product id to compare (0 = back): ", 0, 999999);
+    if (pid == 0) return;
+    Product* p = findProduct(pid);
+    if (p == NULL) { cout << "No such product.\n"; return; }
+    int dist[AREA_N], parent[AREA_N];
+    dijkstra(areaNode, dist, parent);
+    int sIdx[MAX_SHOPS], n = 0;
+    for (int i = 0; i < shopCount; i++) {
+        InvNode* node = inventory.find(shops[i].id, pid);
+        if (node != NULL && node->stock > 0 && dist[shops[i].areaNode] <= MAX_SERVICE_KM) sIdx[n++] = i;
+    }
+    if (n == 0) { cout << "No shop near you has " << p->name << " in stock.\n"; return; }
+    for (int i = 0; i < n - 1; i++)
+        for (int j = 0; j < n - 1 - i; j++)
+            if (inventory.find(shops[sIdx[j]].id, pid)->price > inventory.find(shops[sIdx[j + 1]].id, pid)->price) {
+                int t = sIdx[j]; sIdx[j] = sIdx[j + 1]; sIdx[j + 1] = t;
+            }
+    printf("\nPrices for %s (%s), cheapest first\n", p->name.c_str(), p->unit.c_str());
+    printf("%-22s %-16s %-6s %-10s %s\n", "Shop", "Area", "Km", "Price", "Stock");
+    for (int i = 0; i < n; i++) {
+        Shop& s = shops[sIdx[i]];
+        InvNode* node = inventory.find(s.id, pid);
+        printf("%-22s %-16s %-6d %-10s %d\n", s.name.c_str(), AREA_NAME[s.areaNode],
+               dist[s.areaNode], money(node->price).c_str(), node->stock);
+    }
+}
