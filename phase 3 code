@@ -1227,3 +1227,87 @@ void DeliveryAgent::showStatus() {
     printf("Collect on delivery: %s\n", (o->paymentMode == PAY_COD) ? money(grandTotal(o)).c_str() : "Rs.0.00 (already paid)");
     printRoute(o);
 }
+void DeliveryAgent::moveNext() {
+    Order* o = currentOrder();
+    if (o == NULL) { cout << "No active delivery.\n"; return; }
+    if (o->status == ST_AGENT_ASSIGNED && o->pathPos == o->shopIdx) {
+        cout << "You are at the shop. Confirm the pickup first.\n";
+        return;
+    }
+    if (o->pathPos >= o->pathLen - 1) {
+        cout << "You are at the customer's area. Confirm the delivery.\n";
+        return;
+    }
+    o->pathPos++;
+    currentArea = o->path[o->pathPos];
+    cout << "You moved to " << AREA_NAME[currentArea] << ".\n";
+    saveAll();
+}
+
+void DeliveryAgent::confirmPickup() {
+    Order* o = currentOrder();
+    if (o == NULL) { cout << "No active delivery.\n"; return; }
+    if (o->status != ST_AGENT_ASSIGNED) { cout << "Pickup is already done.\n"; return; }
+    if (o->pathPos != o->shopIdx) { cout << "You are not at the shop yet. Keep moving.\n"; return; }
+    changeStatus(o, ST_PICKED_UP);
+    cout << "Order #" << o->id << " picked up. Head to the customer.\n";
+    saveAll();
+}
+
+void DeliveryAgent::confirmDelivery() {
+    Order* o = currentOrder();
+    if (o == NULL) { cout << "No active delivery.\n"; return; }
+    if (o->status != ST_PICKED_UP) { cout << "Pick up the order first.\n"; return; }
+    if (o->pathPos != o->pathLen - 1) { cout << "You have not reached the customer's area yet.\n"; return; }
+    changeStatus(o, ST_DELIVERED);
+    Payment* p = findPayment(o->id);
+    if (p != NULL && p->status == PS_PENDING) p->status = PS_PAID;   // cash collected
+    isFree = true;
+    currentArea = o->deliveryArea;
+    printf("Delivered order #%d. You earned %s.\n", o->id, money(agentEarning(o)).c_str());
+    processDispatchQueue();           // maybe a waiting order can be given to this agent
+    saveAll();
+}
+
+void DeliveryAgent::earnings() {
+    double total = 0;
+    int count = 0;
+    printf("\n%-6s %-17s %s\n", "Order", "Placed at", "Earning");
+    for (Order* o = orderHead; o != NULL; o = o->next)
+        if (o->agentId == id && o->status == ST_DELIVERED) {
+            printf("#%-5d %-17s %s\n", o->id, timeText(o->createdAt).c_str(), money(agentEarning(o)).c_str());
+            total += agentEarning(o);
+            count++;
+        }
+    printf("Deliveries: %d | Total earnings (%.0f%% of delivery fees): %s\n", count, AGENT_SHARE_PERCENT, money(total).c_str());
+}
+
+void DeliveryAgent::menu() {
+    processDispatchQueue();           // new or returning free agent takes waiting orders
+    saveAll();
+    while (true) {
+        printf("\n===== DELIVERY AGENT: %s =====\n", name.c_str());
+        cout << "1. My status and current delivery\n2. Move to next area on route\n"
+             << "3. Confirm pickup at shop\n4. Confirm delivery to customer\n"
+             << "5. My earnings\n0. Logout\n";
+        int c = readInt("Choice: ", 0, 5);
+        if (c == 0) return;
+        if (c == 1) showStatus();
+        else if (c == 2) moveNext();
+        else if (c == 3) confirmPickup();
+        else if (c == 4) confirmDelivery();
+        else earnings();
+    }
+}
+
+// ============================ MODULE 6 =====================================
+// ADMIN, FILE STORAGE, MAIN
+
+void Admin::addCatalogProduct() {
+    string name = readName("Product name: ");
+    string cat = readName("Category: ");
+    string unit = readName("Unit (e.g. 1 kg, 500 ml): ");
+    int pid = addProduct(name, cat, unit);
+    if (pid == 0) cout << "Not added (duplicate name or catalog full).\n";
+    else { saveAll(); cout << "Added to catalog with id " << pid << ".\n"; }
+}
