@@ -840,3 +840,37 @@ void printOrderDetails(Order* o) {
     Payment* p = findPayment(o->id);
     printf("   Payment         : %s (%s)\n", payModeName(o->paymentMode), p ? payStatusName(p->status) : "-");
 }
+void printRoute(Order* o) {
+    cout << "Route: ";
+    for (int i = 0; i < o->pathLen; i++) {
+        if (i > 0) cout << " -> ";
+        cout << AREA_NAME[o->path[i]];
+        if (i == o->shopIdx) cout << " [Shop]";
+        if (i == o->pathLen - 1) cout << " [Customer]";
+        if (i == o->pathPos) cout << " <== agent is here";
+    }
+    cout << "\n";
+}
+
+// simulated live tracking: status + agent position along the path
+void trackOrder(Order* o) {
+    Shop* s = findShop(o->shopId);
+    printf("\n--- Order #%d | Status: %s ---\n", o->id, STATUS_NAME[o->status]);
+    if (s != NULL) printf("Shop: %s (%s)\n", s->name.c_str(), AREA_NAME[s->areaNode]);
+    if (o->status == ST_PLACED && s != NULL)
+        printf("Waiting for the shop to accept. Orders in the shop queue: %d\n",
+               s->pending.count(ST_PLACED, s->id));
+    else if (o->status == ST_ACCEPTED) cout << "The shop accepted your order and is packing it.\n";
+    else if (o->status == ST_PACKED) cout << "Packed. Waiting for a free delivery agent.\n";
+    else if (o->status == ST_AGENT_ASSIGNED || o->status == ST_PICKED_UP) {
+        User* a = findUser(o->agentId);
+        if (a != NULL) printf("Delivery agent: %s (%s)\n", a->name.c_str(), a->phone.c_str());
+        printRoute(o);
+        int km = 0;
+        for (int i = o->pathPos; i + 1 < o->pathLen; i++) km += graph[o->path[i]][o->path[i + 1]];
+        printf("Distance left: %d km | ETA: about %d minutes\n", km, km * MIN_PER_KM);
+    }
+    else if (o->status == ST_DELIVERED) cout << "Delivered. Thank you for shopping local!\n";
+    else if (o->status == ST_CANCELLED) cout << "This order was cancelled.\n";
+    else if (o->status == ST_REJECTED) cout << "No shop could fulfil this order. Payment refunded if paid.\n";
+}
