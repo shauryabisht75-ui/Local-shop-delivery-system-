@@ -1129,3 +1129,101 @@ void Customer::cancelOrder() {
         cout << "This order can no longer be cancelled.\n";
     }
 }
+void Customer::changeLocation() {
+    areaNode = chooseArea("Your new area (number): ");
+    saveAll();
+    cout << "Location set to " << AREA_NAME[areaNode] << ".\n";
+}
+
+void Customer::menu() {
+    while (true) {
+        printf("\n===== CUSTOMER: %s | Location: %s | Cart: %d item(s) =====\n", name.c_str(), AREA_NAME[areaNode], cartCount);
+        cout << "1. Browse catalog\n2. Search a product\n3. Compare prices of a product\n"
+             << "4. Add item to cart\n5. View / edit cart\n6. Checkout\n"
+             << "7. My orders and tracking\n8. Cancel an order\n9. Change my location\n0. Logout\n";
+        int c = readInt("Choice: ", 0, 9);
+        if (c == 0) return;
+        if (c == 1) browseCatalog();
+        else if (c == 2) searchProduct();
+        else if (c == 3) comparePrices();
+        else if (c == 4) addToCart();
+        else if (c == 5) viewCart();
+        else if (c == 6) checkout();
+        else if (c == 7) myOrders();
+        else if (c == 8) cancelOrder();
+        else changeLocation();
+    }
+}
+
+// ============================ MODULE 5 =====================================
+// DELIVERY AGENT: rider dispatch (Dijkstra), delivery steps, earnings
+
+// assigns the nearest free agent to a packed order; false if nobody is free
+bool tryAssignAgent(Order* o) {
+    Shop* s = findShop(o->shopId);
+    int dist[AREA_N], parent[AREA_N];
+    dijkstra(s->areaNode, dist, parent);
+    DeliveryAgent* best = NULL;
+    int bestDist = INF;
+    for (int i = 0; i < userCount; i++) {
+        if (users[i]->role != ROLE_AGENT) continue;
+        DeliveryAgent* a = static_cast<DeliveryAgent*>(users[i]);
+        if (a->isFree && dist[a->currentArea] < bestDist) { bestDist = dist[a->currentArea]; best = a; }
+    }
+    if (best == NULL) return false;
+
+    int p1[MAX_ROUTE], p2[MAX_ROUTE];
+    int l1 = buildPath(best->currentArea, s->areaNode, p1);   // agent -> shop
+    int l2 = buildPath(s->areaNode, o->deliveryArea, p2);     // shop -> customer
+    if (l1 == 0 || l2 == 0 || l1 + l2 - 1 > MAX_ROUTE) return false;
+    int len = 0;
+    for (int i = 0; i < l1; i++) o->path[len++] = p1[i];
+    for (int i = 1; i < l2; i++) o->path[len++] = p2[i];
+    o->pathLen = len;
+    o->shopIdx = l1 - 1;
+    o->pathPos = 0;
+    o->agentId = best->id;
+    best->isFree = false;
+    changeStatus(o, ST_AGENT_ASSIGNED);
+    return true;
+}
+
+void dispatchOrder(Order* o) {
+    if (tryAssignAgent(o)) {
+        User* a = findUser(o->agentId);
+        cout << "Delivery agent " << a->name << " assigned to order #" << o->id << ".\n";
+    } else {
+        dispatchQueue.enqueue(o);
+        cout << "No agent is free. Order #" << o->id << " is waiting in the dispatch queue.\n";
+    }
+}
+
+// when an agent becomes free, serve waiting orders in first-come order
+void processDispatchQueue() {
+    while (!dispatchQueue.empty()) {
+        Order* o = dispatchQueue.peek();
+        if (o->status != ST_PACKED) { dispatchQueue.dequeue(); continue; }
+        if (!tryAssignAgent(o)) break;
+        dispatchQueue.dequeue();
+    }
+}
+
+Order* DeliveryAgent::currentOrder() {
+    for (Order* o = orderHead; o != NULL; o = o->next)
+        if (o->agentId == id && (o->status == ST_AGENT_ASSIGNED || o->status == ST_PICKED_UP)) return o;
+    return NULL;
+}
+
+void DeliveryAgent::showStatus() {
+    printf("\nYou are at: %s | %s\n", AREA_NAME[currentArea], isFree ? "FREE for orders" : "BUSY with a delivery");
+    Order* o = currentOrder();
+    if (o == NULL) { cout << "No active delivery.\n"; return; }
+    Shop* s = findShop(o->shopId);
+    User* c = findUser(o->customerId);
+    printf("Active order #%d | Status: %s\n", o->id, STATUS_NAME[o->status]);
+    printf("Pick up at: %s (%s)\n", s->name.c_str(), AREA_NAME[s->areaNode]);
+    printf("Deliver to: %s | Customer: %s %s\n", AREA_NAME[o->deliveryArea],
+           c ? c->name.c_str() : "?", c ? c->phone.c_str() : "");
+    printf("Collect on delivery: %s\n", (o->paymentMode == PAY_COD) ? money(grandTotal(o)).c_str() : "Rs.0.00 (already paid)");
+    printRoute(o);
+}
