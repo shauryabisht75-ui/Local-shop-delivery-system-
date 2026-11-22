@@ -1700,3 +1700,30 @@ void loginUser() {
     u->menu();
     saveAll();
 }
+int main() {
+    loadGraph();
+    loadAll();
+    if (productCount == 0) seedCatalog();
+    if (userCount == 0) {
+        Admin* a = new Admin();
+        a->id = nextUserId++;
+        a->name = "Admin"; a->phone = "9999999999"; a->passHash = hashPassword("admin123");
+        users[userCount++] = a;
+    }
+    saveAll();
+
+    cout << "=====================================================\n";
+    cout << "        LOCAL SHOP DELIVERY SYSTEM\n";
+    cout << "   Shop local. Delivered to your door.\n";
+    cout << "=====================================================\n";
+    while (true) {
+        cout << "\n1. Login\n2. Register\n0. Exit\n";
+        int c = readInt("Choice: ", 0, 2);
+        if (c == 0) break;
+        if (c == 1) loginUser();
+        else registerUser();
+    }
+    saveAll();
+    cout << "Goodbye!\n";
+    return 0;
+}
