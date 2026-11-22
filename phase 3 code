@@ -1311,3 +1311,83 @@ void Admin::addCatalogProduct() {
     if (pid == 0) cout << "Not added (duplicate name or catalog full).\n";
     else { saveAll(); cout << "Added to catalog with id " << pid << ".\n"; }
 }
+void Admin::viewShops() {
+    printf("\n%-5s %-24s %-16s %-20s %s\n", "ID", "Shop", "Area", "Owner", "Products");
+    for (int i = 0; i < shopCount; i++) {
+        int items = 0;
+        for (int p = 0; p < productCount; p++)
+            if (inventory.find(shops[i].id, products[p].id) != NULL) items++;
+        User* u = findUser(shops[i].ownerId);
+        printf("%-5d %-24s %-16s %-20s %d\n", shops[i].id, shops[i].name.c_str(),
+               AREA_NAME[shops[i].areaNode], u ? u->name.c_str() : "?", items);
+    }
+    if (shopCount == 0) cout << "  (no shops yet)\n";
+}
+
+void Admin::viewUsers() {
+    const char* roleName[5] = {"", "Customer", "Shopkeeper", "Agent", "Admin"};
+    printf("\n%-5s %-22s %-12s %s\n", "ID", "Name", "Phone", "Role");
+    for (int i = 0; i < userCount; i++)
+        printf("%-5d %-22s %-12s %s\n", users[i]->id, users[i]->name.c_str(), users[i]->phone.c_str(), roleName[users[i]->role]);
+}
+
+void Admin::viewOrders() {
+    printf("\n%-6s %-17s %-15s %-12s %-18s %s\n", "Order", "Placed at", "Status", "Total", "Customer", "Shop");
+    int shown = 0;
+    for (Order* o = orderHead; o != NULL; o = o->next) {
+        User* u = findUser(o->customerId);
+        Shop* s = findShop(o->shopId);
+        printf("#%-5d %-17s %-15s %-12s %-18s %s\n", o->id, timeText(o->createdAt).c_str(), STATUS_NAME[o->status],
+               money(grandTotal(o)).c_str(), u ? u->name.c_str() : "?", s ? s->name.c_str() : "-");
+        shown++;
+    }
+    if (shown == 0) cout << "  (no orders yet)\n";
+}
+
+// settlement: how the money of every DELIVERED order is split
+void Admin::settlementReport() {
+    int counts[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    double sales = 0, collected = 0, shopPay = 0, agentPay = 0, platform = 0;
+    for (Order* o = orderHead; o != NULL; o = o->next) {
+        counts[o->status]++;
+        if (o->status == ST_DELIVERED) {
+            sales += o->itemTotal;
+            collected += grandTotal(o);
+            shopPay += shopEarning(o);
+            agentPay += agentEarning(o);
+            platform += platformEarning(o);
+        }
+    }
+    cout << "\nORDER COUNT BY STATUS\n";
+    for (int i = 0; i < 8; i++) printf("  %-15s %d\n", STATUS_NAME[i], counts[i]);
+    printf("\nSETTLEMENT (delivered orders only)\n");
+    printf("  Total paid by customers : %s\n", money(collected).c_str());
+    printf("  Item sales              : %s\n", money(sales).c_str());
+    printf("  Payable to shops        : %s  (item total - %.0f%% commission)\n", money(shopPay).c_str(), COMMISSION_PERCENT);
+    printf("  Payable to agents       : %s  (%.0f%% of delivery fees)\n", money(agentPay).c_str(), AGENT_SHARE_PERCENT);
+    printf("  PLATFORM PROFIT         : %s  (commission + fees)\n", money(platform).c_str());
+    printf("\nPER SHOP\n%-24s %-10s %-14s %s\n", "Shop", "Delivered", "Sales", "Payout");
+    for (int i = 0; i < shopCount; i++) {
+        int d = 0;
+        double sl = 0, pay = 0;
+        for (Order* o = orderHead; o != NULL; o = o->next)
+            if (o->shopId == shops[i].id && o->status == ST_DELIVERED) { d++; sl += o->itemTotal; pay += shopEarning(o); }
+        printf("%-24s %-10d %-14s %s\n", shops[i].name.c_str(), d, money(sl).c_str(), money(pay).c_str());
+    }
+}
+
+void Admin::menu() {
+    while (true) {
+        printf("\n===== ADMIN: %s =====\n", name.c_str());
+        cout << "1. Add product to master catalog\n2. View all shops\n3. View all users\n"
+             << "4. View all orders\n5. Settlement report\n6. Area map\n0. Logout\n";
+        int c = readInt("Choice: ", 0, 6);
+        if (c == 0) return;
+        if (c == 1) addCatalogProduct();
+        else if (c == 2) viewShops();
+        else if (c == 3) viewUsers();
+        else if (c == 4) viewOrders();
+        else if (c == 5) settlementReport();
+        else printMap();
+    }
+}
