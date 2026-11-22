@@ -1391,3 +1391,312 @@ void Admin::menu() {
         else printMap();
     }
 }
+// ---------- first-run catalog (items of a normal general store) ----------
+const char* SEED_ITEMS[][3] = {
+    {"Basmati Rice", "Grocery", "1 kg"}, {"Regular Rice", "Grocery", "1 kg"},
+    {"Wheat Flour (Atta)", "Grocery", "1 kg"}, {"Maida", "Grocery", "500 g"},
+    {"Sooji (Semolina)", "Grocery", "500 g"}, {"Besan", "Grocery", "500 g"},
+    {"Sugar", "Grocery", "1 kg"}, {"Salt", "Grocery", "1 kg"},
+    {"Toor Dal", "Grocery", "1 kg"}, {"Moong Dal", "Grocery", "500 g"},
+    {"Masoor Dal", "Grocery", "500 g"}, {"Chana Dal", "Grocery", "500 g"},
+    {"Rajma", "Grocery", "500 g"}, {"Kabuli Chana", "Grocery", "500 g"},
+    {"Poha", "Grocery", "500 g"}, {"Mustard Oil", "Grocery", "1 L"},
+    {"Refined Oil", "Grocery", "1 L"}, {"Desi Ghee", "Grocery", "500 ml"},
+    {"Tea Leaves", "Grocery", "250 g"}, {"Instant Coffee", "Grocery", "50 g"},
+    {"Turmeric Powder", "Spices", "100 g"}, {"Red Chilli Powder", "Spices", "100 g"},
+    {"Coriander Powder", "Spices", "100 g"}, {"Garam Masala", "Spices", "50 g"},
+    {"Jeera (Cumin)", "Spices", "100 g"},
+    {"Milk", "Dairy and Eggs", "500 ml"}, {"Curd", "Dairy and Eggs", "400 g"},
+    {"Butter", "Dairy and Eggs", "100 g"}, {"Paneer", "Dairy and Eggs", "200 g"},
+    {"Cheese Slices", "Dairy and Eggs", "200 g"}, {"Eggs", "Dairy and Eggs", "6 pcs"},
+    {"Bread", "Bakery", "400 g"}, {"Rusk", "Bakery", "300 g"},
+    {"Glucose Biscuits", "Bakery", "200 g"}, {"Cream Biscuits", "Bakery", "100 g"},
+    {"Bhujia Namkeen", "Snacks", "200 g"}, {"Potato Chips", "Snacks", "50 g"},
+    {"Instant Noodles", "Snacks", "70 g"}, {"Chocolate Bar", "Snacks", "40 g"},
+    {"Roasted Peanuts", "Snacks", "250 g"},
+    {"Cold Drink", "Beverages", "750 ml"}, {"Packaged Water", "Beverages", "1 L"},
+    {"Fruit Juice", "Beverages", "1 L"}, {"Tea Bags", "Beverages", "25 pcs"},
+    {"Potato", "Fruits and Vegetables", "1 kg"}, {"Onion", "Fruits and Vegetables", "1 kg"},
+    {"Tomato", "Fruits and Vegetables", "1 kg"}, {"Banana", "Fruits and Vegetables", "12 pcs"},
+    {"Apple", "Fruits and Vegetables", "1 kg"}, {"Green Chilli", "Fruits and Vegetables", "100 g"},
+    {"Ginger", "Fruits and Vegetables", "100 g"}, {"Garlic", "Fruits and Vegetables", "100 g"},
+    {"Lemon", "Fruits and Vegetables", "4 pcs"},
+    {"Bathing Soap", "Personal Care", "100 g"}, {"Shampoo", "Personal Care", "180 ml"},
+    {"Toothpaste", "Personal Care", "100 g"}, {"Toothbrush", "Personal Care", "1 pc"},
+    {"Hair Oil", "Personal Care", "100 ml"},
+    {"Detergent Powder", "Household", "1 kg"}, {"Dishwash Bar", "Household", "200 g"},
+    {"Floor Cleaner", "Household", "500 ml"}, {"Matchbox", "Household", "10 pcs"},
+    {"Candles", "Household", "6 pcs"}, {"Notebook", "Stationery", "1 pc"},
+    {"Ball Pen", "Stationery", "5 pcs"}
+};
+
+void seedCatalog() {
+    int n = sizeof(SEED_ITEMS) / sizeof(SEED_ITEMS[0]);
+    for (int i = 0; i < n; i++) addProduct(SEED_ITEMS[i][0], SEED_ITEMS[i][1], SEED_ITEMS[i][2]);
+}
+
+User* makeUser(int role) {
+    if (role == ROLE_CUSTOMER) return new Customer();
+    if (role == ROLE_SHOPKEEPER) return new Shopkeeper();
+    if (role == ROLE_AGENT) return new DeliveryAgent();
+    return new Admin();
+}
+
+// ---------- saving: one text file per table, fields separated by '|' ----------
+void saveAll() {
+    ofstream f;
+
+    f.open("users.txt");
+    for (int i = 0; i < userCount; i++)
+        f << users[i]->id << "|" << users[i]->name << "|" << users[i]->phone << "|"
+          << users[i]->passHash << "|" << users[i]->role << "|" << users[i]->areaNode << "\n";
+    f.close();
+
+    f.open("agents.txt");            // agent id = user id
+    for (int i = 0; i < userCount; i++)
+        if (users[i]->role == ROLE_AGENT) {
+            DeliveryAgent* a = static_cast<DeliveryAgent*>(users[i]);
+            f << a->id << "|" << a->currentArea << "|" << (a->isFree ? 1 : 0) << "\n";
+        }
+    f.close();
+
+    f.open("products.txt");
+    for (int i = 0; i < productCount; i++)
+        f << products[i].id << "|" << products[i].name << "|" << products[i].category << "|" << products[i].unit << "\n";
+    f.close();
+
+    f.open("shops.txt");
+    for (int i = 0; i < shopCount; i++)
+        f << shops[i].id << "|" << shops[i].ownerId << "|" << shops[i].name << "|" << shops[i].areaNode << "\n";
+    f.close();
+
+    f.open("inventory.txt");
+    for (int h = 0; h < HASH_SIZE; h++)
+        for (InvNode* p = inventory.head(h); p != NULL; p = p->next)
+            f << p->shopId << "|" << p->productId << "|" << p->price << "|" << p->stock << "\n";
+    f.close();
+
+    f.open("orders.txt");
+    ofstream fi("order_items.txt");
+    for (Order* o = orderHead; o != NULL; o = o->next) {
+        f << o->id << "|" << o->customerId << "|" << o->shopId << "|" << o->agentId << "|" << o->status << "|"
+          << o->itemTotal << "|" << o->deliveryFee << "|" << o->smallCartFee << "|" << o->platformFee << "|"
+          << o->paymentMode << "|" << o->allocMode << "|" << o->deliveryArea << "|" << o->createdAt << "|"
+          << o->pathPos << "|" << o->shopIdx << "|";
+        if (o->pathLen == 0) f << "-";
+        for (int i = 0; i < o->pathLen; i++) f << (i ? ";" : "") << o->path[i];
+        f << "|";
+        if (o->triedCount == 0) f << "-";
+        for (int i = 0; i < o->triedCount; i++) f << (i ? ";" : "") << o->tried[i];
+        f << "\n";
+        for (int i = 0; i < o->itemCount; i++)
+            fi << o->id << "|" << o->items[i].productId << "|" << o->items[i].qty << "|" << o->items[i].price << "\n";
+    }
+    f.close();
+    fi.close();
+
+    f.open("payments.txt");
+    for (int i = 0; i < paymentCount; i++)
+        f << payments[i].id << "|" << payments[i].orderId << "|" << payments[i].mode << "|" << payments[i].status << "\n";
+    f.close();
+}
+
+void saveGraph() {
+    ofstream f("area_graph.txt");
+    for (int i = 0; i < AREA_N; i++)
+        for (int j = i + 1; j < AREA_N; j++)
+            if (graph[i][j] > 0) f << i << "|" << j << "|" << graph[i][j] << "\n";
+}
+
+void loadGraph() {
+    for (int i = 0; i < AREA_N; i++)
+        for (int j = 0; j < AREA_N; j++) graph[i][j] = 0;
+    ifstream f("area_graph.txt");
+    if (!f.is_open()) { defaultRoads(); saveGraph(); return; }
+    string line, p[6];
+    int roads = 0;
+    while (getline(f, line)) {
+        if (splitLine(line, p, 6) < 3) continue;
+        int a = atoi(p[0].c_str()), b = atoi(p[1].c_str()), km = atoi(p[2].c_str());
+        if (a >= 0 && a < AREA_N && b >= 0 && b < AREA_N && km > 0) { addRoad(a, b, km); roads++; }
+    }
+    if (roads == 0) { defaultRoads(); saveGraph(); }
+}
+
+// ---------- loading ----------
+void loadAll() {
+    string line, p[20];
+    ifstream f;
+
+    f.open("users.txt");
+    while (getline(f, line) && userCount < MAX_USERS) {
+        if (splitLine(line, p, 20) < 6) continue;
+        User* u = makeUser(atoi(p[4].c_str()));
+        u->id = atoi(p[0].c_str()); u->name = p[1]; u->phone = p[2];
+        u->passHash = p[3]; u->areaNode = atoi(p[5].c_str());
+        if (u->areaNode < 0 || u->areaNode >= AREA_N) u->areaNode = 0;
+        users[userCount++] = u;
+        if (u->id >= nextUserId) nextUserId = u->id + 1;
+    }
+    f.close();
+
+    f.open("agents.txt");
+    while (getline(f, line)) {
+        if (splitLine(line, p, 20) < 3) continue;
+        User* u = findUser(atoi(p[0].c_str()));
+        if (u == NULL || u->role != ROLE_AGENT) continue;
+        DeliveryAgent* a = static_cast<DeliveryAgent*>(u);
+        a->currentArea = atoi(p[1].c_str());
+        if (a->currentArea < 0 || a->currentArea >= AREA_N) a->currentArea = 0;
+        a->isFree = (atoi(p[2].c_str()) == 1);
+    }
+    f.close();
+
+    f.open("products.txt");
+    while (getline(f, line) && productCount < MAX_PRODUCTS) {
+        if (splitLine(line, p, 20) < 4) continue;
+        Product& pr = products[productCount++];
+        pr.id = atoi(p[0].c_str()); pr.name = p[1]; pr.category = p[2]; pr.unit = p[3];
+        nameTable.insert(toLower(pr.name), pr.id);
+        if (pr.id >= nextProductId) nextProductId = pr.id + 1;
+    }
+    f.close();
+
+    f.open("shops.txt");
+    while (getline(f, line) && shopCount < MAX_SHOPS) {
+        if (splitLine(line, p, 20) < 4) continue;
+        Shop& s = shops[shopCount++];
+        s.id = atoi(p[0].c_str()); s.ownerId = atoi(p[1].c_str()); s.name = p[2];
+        s.areaNode = atoi(p[3].c_str());
+        if (s.areaNode < 0 || s.areaNode >= AREA_N) s.areaNode = 0;
+        if (s.id >= nextShopId) nextShopId = s.id + 1;
+    }
+    f.close();
+
+    f.open("inventory.txt");
+    while (getline(f, line)) {
+        if (splitLine(line, p, 20) < 4) continue;
+        inventory.set(atoi(p[0].c_str()), atoi(p[1].c_str()), atof(p[2].c_str()), atoi(p[3].c_str()));
+    }
+    f.close();
+
+    f.open("orders.txt");
+    while (getline(f, line)) {
+        if (splitLine(line, p, 20) < 17) continue;
+        Order* o = newOrderNode();
+        o->id = atoi(p[0].c_str());
+        if (o->id >= nextOrderId) nextOrderId = o->id + 1;
+        o->customerId = atoi(p[1].c_str()); o->shopId = atoi(p[2].c_str()); o->agentId = atoi(p[3].c_str());
+        o->status = atoi(p[4].c_str());
+        o->itemTotal = atof(p[5].c_str()); o->deliveryFee = atof(p[6].c_str());
+        o->smallCartFee = atof(p[7].c_str()); o->platformFee = atof(p[8].c_str());
+        o->paymentMode = atoi(p[9].c_str()); o->allocMode = atoi(p[10].c_str());
+        o->deliveryArea = atoi(p[11].c_str()); o->createdAt = atoll(p[12].c_str());
+        o->pathPos = atoi(p[13].c_str()); o->shopIdx = atoi(p[14].c_str());
+        if (p[15] != "-") {
+            string cur = "";
+            for (size_t i = 0; i <= p[15].size(); i++) {
+                if (i == p[15].size() || p[15][i] == ';') {
+                    if (!cur.empty() && o->pathLen < MAX_ROUTE) o->path[o->pathLen++] = atoi(cur.c_str());
+                    cur = "";
+                } else cur += p[15][i];
+            }
+        }
+        if (p[16] != "-") {
+            string cur = "";
+            for (size_t i = 0; i <= p[16].size(); i++) {
+                if (i == p[16].size() || p[16][i] == ';') {
+                    if (!cur.empty() && o->triedCount < MAX_TRIED) o->tried[o->triedCount++] = atoi(cur.c_str());
+                    cur = "";
+                } else cur += p[16][i];
+            }
+        }
+    }
+    f.close();
+
+    f.open("order_items.txt");
+    while (getline(f, line)) {
+        if (splitLine(line, p, 20) < 4) continue;
+        Order* o = findOrder(atoi(p[0].c_str()));
+        if (o == NULL || o->itemCount >= MAX_ITEMS) continue;
+        o->items[o->itemCount].productId = atoi(p[1].c_str());
+        o->items[o->itemCount].qty = atoi(p[2].c_str());
+        o->items[o->itemCount].price = atof(p[3].c_str());
+        o->itemCount++;
+    }
+    f.close();
+
+    f.open("payments.txt");
+    while (getline(f, line) && paymentCount < MAX_PAYMENTS) {
+        if (splitLine(line, p, 20) < 4) continue;
+        Payment& pay = payments[paymentCount++];
+        pay.id = atoi(p[0].c_str()); pay.orderId = atoi(p[1].c_str());
+        pay.mode = atoi(p[2].c_str()); pay.status = atoi(p[3].c_str());
+        if (pay.id >= nextPaymentId) nextPaymentId = pay.id + 1;
+    }
+    f.close();
+
+    // rebuild the queues from the order list (list is in arrival order)
+    for (Order* o = orderHead; o != NULL; o = o->next) {
+        if (o->status == ST_PLACED) {
+            Shop* s = findShop(o->shopId);
+            if (s != NULL) s->pending.enqueue(o);
+        } else if (o->status == ST_PACKED && o->agentId == 0) {
+            dispatchQueue.enqueue(o);
+        }
+    }
+}
+
+User* findUserByPhone(const string& phone) {
+    for (int i = 0; i < userCount; i++)
+        if (users[i]->phone == phone) return users[i];
+    return NULL;
+}
+
+void registerUser() {
+    if (userCount >= MAX_USERS) { cout << "User limit reached.\n"; return; }
+    cout << "\nRegister as: 1. Customer  2. Shopkeeper  3. Delivery Agent  0. Back\n";
+    int role = readInt("Choice: ", 0, 3);
+    if (role == 0) return;
+    string name = readName("Your name: ");
+    string phone;
+    while (true) {
+        phone = readLine("Phone number (10 digits): ");
+        if (phone.size() != 10 || !isNumber(phone.substr(0, 5)) || !isNumber(phone.substr(5))) {
+            cout << "  Phone must be exactly 10 digits.\n";
+        } else if (findUserByPhone(phone) != NULL) {
+            cout << "  This phone number is already registered.\n";
+        } else break;
+    }
+    string pass;
+    while (true) {
+        pass = readLine("Password (at least 4 characters): ");
+        if (pass.size() >= 4) break;
+        cout << "  Password is too short.\n";
+    }
+    User* u = makeUser(role);
+    u->id = nextUserId++;
+    u->name = name; u->phone = phone; u->passHash = hashPassword(pass);
+    if (role == ROLE_CUSTOMER) u->areaNode = chooseArea("Your area (number): ");
+    if (role == ROLE_AGENT) {
+        DeliveryAgent* a = static_cast<DeliveryAgent*>(u);
+        a->currentArea = chooseArea("Area where you start (number): ");
+        a->isFree = true;
+    }
+    users[userCount++] = u;
+    saveAll();
+    cout << "Registered successfully! You can log in now.\n";
+}
+
+void loginUser() {
+    string phone = readLine("Phone number: ");
+    string pass = readLine("Password: ");
+    User* u = findUserByPhone(phone);
+    if (u == NULL || u->passHash != hashPassword(pass)) {
+        cout << "Wrong phone number or password.\n";
+        return;
+    }
+    cout << "\nWelcome, " << u->name << "!\n";
+    u->menu();
+    saveAll();
+}
