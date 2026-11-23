@@ -1,257 +1,268 @@
-# Local Shop Delivery System
+Shop Delivery and Management System
 
-![Language](https://img.shields.io/badge/language-C%2B%2B17-blue)
-![Database](https://img.shields.io/badge/database-MySQL%20(XAMPP)-orange)
-![Phase I](https://img.shields.io/badge/Phase%20I-completed-brightgreen)
-![Status](https://img.shields.io/badge/Phase%20II-in%20development-yellow)
+Show Image Show Image Show Image Show Image Show Image
 
-A console-based C++ application that lets small shopkeepers in remote and hilly areas sell their products online, with customers ordering from nearby shops and delivery agents completing the delivery. Built as a Project-Based Learning (PBL) project using **Data Structures, OOP with C++ and DBMS (MySQL)**.
+A hyperlocal quick-delivery website where every order is fulfilled by a neighbourhood shop instead of a company-owned store. Customers order from nearby shops, shopkeepers get an online sales channel, and delivery agents earn by delivering. The whole backend is written in C++ using Data Structures and OOP, with a small web server built in, so you do not need Apache, MySQL, Node or any library to run it.
 
-> **Course:** DSCPP &nbsp;|&nbsp; **Team ID:** DSCPP-III-2026-T113 &nbsp;|&nbsp; **Mentor:** Mr. Priyanshu Rawat
-> Department of Computer Science & Engineering, Graphic Era (Deemed to be University), Dehradun — Academic Session 2026–27
+Course: DSCPP  |  Team ID: DSCPP-III-2026-T113  |  Mentor: Mr. Priyanshu Rawat Department of Computer Science & Engineering, Graphic Era (Deemed to be University), Dehradun, Academic Session 2026–27
 
----
+Earlier name used in the Phase-I and Phase-II documents: "Local Shop Delivery System".
 
-## Table of Contents
-1. [Problem Statement](#problem-statement)
-2. [Features](#features)
-3. [System Architecture](#system-architecture)
-4. [Data Structures and OOP Used](#data-structures-and-oop-used)
-5. [Database Design](#database-design)
-6. [Project Structure](#project-structure)
-7. [Getting Started](#getting-started)
-8. [Testing](#testing)
-9. [Project Phases](#project-phases)
-10. [Phase I: Completed](#phase-i-completed)
-11. [Project Status (Phase II)](#project-status-phase-ii)
-12. [Team and Contributions](#team-and-contributions)
-13. [Git Workflow](#git-workflow)
-14. [Roadmap](#roadmap)
-15. [References](#references)
+Customer home page
 
----
+Table of Contents
+Problem Statement
+Features
+How an Order Works
+System Architecture
+Data Structures and OOP Used
+Data Storage
+Project Structure
+Getting Started
+Demo Logins
+Five-Minute Demo
+Live Tracking and Maps
+Testing
+Screenshots
+Project Phases
+Team and Contributions
+Git Workflow
+Limitations and Future Scope
+References
+Problem Statement
 
-## Problem Statement
-Quick-delivery apps such as Blinkit and Zepto do not reach many remote and hilly areas. People without a vehicle have to walk a long way to the nearest store, and local shopkeepers have no way to sell online.
+Apps such as Blinkit and Zepto need their own stores and a large delivery network to work. Small neighbourhood shops have no online channel, and customers cannot easily get home delivery from them.
 
-This project connects **shopkeepers, customers and delivery agents** in one system so that small towns get the same shopping convenience as cities, and local shops and delivery agents get a new source of income.
+This project connects shopkeepers, customers, delivery agents and an admin on one platform. Shops get online sales, customers get doorstep delivery, and delivery agents get a new source of income.
 
-## Features
+Features
+User	What they can do
+Customer	Pick an area, search and browse products, compare the price of the same product across nearby shops, fill the cart, choose how the shop is picked (nearest / cheapest / best overall), pay by cash on delivery, UPI or card (simulated), track the delivery live on a map, see the full bill, cancel before packing
+Shopkeeper	Create the shop, set price and stock for each product, handle the order desk first-come-first-served (accept or reject, then pack), see earnings after commission
+Delivery agent	Register, get the nearest order automatically, confirm pickup and delivery, see earnings
+Admin	Live operations map, money settlement (who gets what), all orders, users and shops, add products to the catalog, map settings
 
-| User | What they can do |
-|------|------------------|
-| **Shopkeeper** | Add, update, delete and view products and stock |
-| **Customer** | Browse products, compare the price of the same product across nearby shops (cheapest first), place orders, check order status |
-| **Delivery Agent** | Register, view assigned orders, accept and complete deliveries |
+Scope decisions: no real GPS (the town is a small graph of areas and the rider is simulated), payments are simulated, and each delivery agent handles one order at a time.
 
-**Scope decisions:** console application only, cash on delivery, no online payment, no real GPS (nearby areas are modelled as a small graph), one order per agent at a time.
+How an Order Works
+Area. The town is modelled as a graph of 8 areas joined by roads with fixed lengths in km. The customer picks an area. Only shops within 8 km can serve it.
+Cart and shop choice. The system keeps only the shops that have every item in stock and ranks them as nearest, cheapest items or best overall (items + delivery fee).
+Bill. items total + delivery fee (Rs 20 + Rs 5 per km) + small-cart fee (Rs 15 if items are below Rs 100) + platform fee (Rs 5).
+Placing the order. Stock is reserved immediately, so two customers cannot buy the last unit. The order joins the shop's first-come-first-served queue as PLACED.
+Shop desk. Only the oldest new order can be accepted or rejected. Reject sends the order to the next best shop (a UPI or card payment is refunded if no shop is left). Pack makes it PACKED.
+Delivery agent. Dijkstra's algorithm runs from the shop's area and the nearest free agent gets the order. If every agent is busy, the order waits in the dispatch queue until one is free.
+Delivery. The agent confirms pickup, the rider travels shop to customer, and the agent confirms delivery.
+Money. The shop gets the item total minus 10% commission, the agent gets 80% of the delivery fee, and the platform keeps the rest.
 
-## System Architecture
+Order status flow (any other jump is refused):
 
-The system is built in layers:
+PLACED -> ACCEPTED -> PACKED -> AGENT_ASSIGNED -> PICKED_UP -> DELIVERED
+   |
+   +--> CANCELLED (by customer, before packing)   +--> REJECTED (no shop can fulfil)
 
-```
-Input Layer -> Processing Layer -> Core Logic -> Database Layer -> Output Layer
-```
+Worked example (3 km order): items Rs 31 + Rs 43 = Rs 74, delivery Rs 20 + 3 x Rs 5 = Rs 35, small-cart fee Rs 15, platform fee Rs 5, so the customer pays Rs 129. The shop gets 74 x 90% = Rs 66.60, the agent gets 35 x 80% = Rs 28, and the platform keeps Rs 34.40.
 
-Major modules: **Shop Management**, **Order Management**, **Delivery Agent** and **Data Storage (MySQL)**.
-Module dependency: `Shop -> Order -> Delivery Agent`, with all data saved in MySQL.
+System Architecture
+Browser  (frontend/: HTML + CSS + JavaScript, Leaflet / OpenStreetMap or Google Maps)
+   |   JSON over HTTP, forms and buttons as input, pages / order status / ETA / map as output
+   v
+backend/main.cpp  ->  small built-in web server (src/http.h)
+   |-- src/api*.h     URL list: which URL calls which function
+   |-- six C++ modules (Common, Shop, Order, Customer, Delivery Agent, Storage)
+   `-- backend/data/*.txt   text-file storage, saved after every change
+Layer	What it does
+Interface layer	Web pages for each role: forms, buttons, tracking map
+Core processing	Validates every input, then runs the module logic (hash tables, queues, linked list, sorting, Dijkstra)
+Storage layer	Text files, saved after each change and loaded when the server starts
 
-**Order life cycle**
+The API answers { "ok": true, ... } or { "ok": false, "error": ... } with the codes 400 (bad input), 401 (not logged in), 403 (wrong role), 404 (not found) and 409 (rule broken, for example an invalid status change). Login uses a token per session.
 
-```
-PENDING  ->  ACCEPTED  ->  DELIVERED
-(placed)     (agent took it)   (completed, cash collected)
-```
+Data Structures and OOP Used
+Concept	Where it is used	File
+Linked list	All orders, kept in one chain with their status	order.h, types.h
+Linked FIFO queue	Each shop's order desk and the agent dispatch queue	types.h, agent.h
+Chained hash table	Shop inventory (key = shop id + product id) and product names, O(1) on average	shop.h
+Graph (adjacency matrix) + Dijkstra	8-area map, nearest free agent and the delivery route	common.h, agent.h
+Sorting	Bubble sort for ranking shops and price comparison, insertion sort to keep the catalog in name order	order.h, customer.h, shop.h
+Arrays	Users, shops, products, payments (fixed size, simple indexes)	types.h, common.h
+OOP: classes, objects, inheritance, virtual functions	User base class with Customer, Shopkeeper, DeliveryAgent and Admin	types.h
+Data Storage
 
-## Data Structures and OOP Used
+All data is stored as plain text files in backend/data/ (created on the first run, with demo data): users, agents, products, shops, inventory, orders, order_items, payments and area_graph.
 
-| Concept | Where it is used |
-|---------|------------------|
-| Hash map | Fast product and shop lookup by ID / name |
-| Queue | Incoming orders are processed first-come, first-served |
-| Linked list | Each order's status chain (pending -> accepted -> delivered) |
-| Sorting | Price comparison, cheapest shop first |
-| Graph + Dijkstra | Finding the nearest delivery agent (in progress) |
-| OOP (classes, objects, inheritance) | `User` base class with `Shopkeeper`, `Customer` and `DeliveryAgent` |
+To start again from the demo data, stop the server and delete the backend/data/ folder.
 
-## Database Design
-
-Database name: `local_shop_db`. The database and all tables are **created automatically** by the program on the first run (`DatabaseSetup`).
-
-| Table | Purpose | Key columns |
-|-------|---------|-------------|
-| `users` | Shopkeepers, customers and delivery agents | `user_id`, `name`, `phone` (unique), `role`, `area`, `is_available` |
-| `products` | Products sold by each shop | `product_id`, `shop_id` (FK), `name`, `price`, `stock` |
-| `orders` | Customer orders and their status | `order_id`, `customer_id`, `shop_id`, `product_id`, `quantity`, `agent_id`, `status`, `created_at` |
-
-`orders.status` is one of `PENDING`, `ACCEPTED`, `DELIVERED`.
-
-## Project Structure
-
-```
+Project Structure
 Local-shop-delivery-system-/
-├── main.cpp                  # Entry point, DB setup, main menu (integration layer)
-├── Makefile                  # Build and test commands
 ├── README.md
-├── .gitignore
-├── include/
-│   ├── config.h              # Database host / user / password / name
-│   ├── DBConnection.h        # MySQL connection handling
-│   ├── DatabaseSetup.h       # Creates database, tables and sample data
-│   ├── InputValidator.h      # Safe console input (no crashes on wrong input)
-│   └── ...                   # Headers of the other modules (products, shops, customers, agents, orders)
-├── src/
-│   ├── DBConnection.cpp
-│   ├── DatabaseSetup.cpp
-│   └── ...                   # Implementation of the other modules
-├── tests/
-│   ├── test_validator.cpp    # Input validation tests (no database needed)
-│   └── test_database_flow.cpp# Tables + full order flow test with sample data
+├── run.sh / run.bat              # compile (when needed) and start the server
+├── backend/
+│   ├── main.cpp                  # entry point: options, server loop
+│   └── src/
+│       ├── common.h              # MODULE 1: fee constants, validation, area graph, Dijkstra
+│       ├── shop.h                # MODULE 2: catalog, inventory hash tables, shop desk
+│       ├── order.h, types.h      # MODULE 3: queue, linked list, status flow, allocation, fees, ETA
+│       ├── customer.h            # MODULE 4: cart, search, price comparison, checkout, cancel
+│       ├── agent.h               # MODULE 5: dispatch, pickup / delivery, tracking simulation
+│       ├── storage.h, seed.h     # MODULE 6: save / load text files, login, demo data
+│       ├── http.h, json.h        # small web server and JSON writer
+│       └── api*.h                # URL routes for each role
+├── frontend/
+│   ├── index.html
+│   ├── css/                      # base.css, pages.css
+│   ├── js/                       # one file per screen group (home, cart, orders, shop, agent, admin) + map.js
+│   └── vendor/leaflet/           # Leaflet 1.9.4 (map library)
+├── tests/                        # Python API tests, Node + Playwright browser tests
 └── docs/
-    └── screenshots/          # Output screenshots
-```
+    ├── original_console_version.cpp   # our first console version, kept as it was
+    ├── PROJECT_STATE.md               # decisions, API list and checklist
+    ├── blinkit_blueprint_prompt.md    # design rules used for the project
+    └── screenshots/
+Getting Started
+Prerequisites
+A C++ compiler (g++). Nothing else is needed to run the website.
+Only for the tests: Python 3, and Node.js with Playwright for the browser tests.
+Run
 
-## Getting Started
+Linux / macOS
 
-### Prerequisites
-- A C++17 compiler (g++ / MinGW)
-- [XAMPP](https://www.apachefriends.org/) (used to run MySQL)
-- MySQL Connector/C++ (legacy JDBC-style API, version 8.x)
-- Git, and VS Code (recommended)
+bash
+git clone https://github.com/shauryabisht75-ui/Local-shop-delivery-system-.git
+cd Local-shop-delivery-system-
+./run.sh            # compiles the first time (10-20 s), then starts the server
 
-### Setup
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/shauryabisht75-ui/Local-shop-delivery-system-.git
-   cd Local-shop-delivery-system-
-   ```
-2. **Start MySQL** from the XAMPP Control Panel.
-3. **Check the database settings** in `include/config.h`. XAMPP's default is user `root` with an empty password.
-4. **Build**
-   ```bash
-   make CONNECTOR_DIR="path/to/mysql-connector-c++"
-   ```
-   On Linux, after installing `libmysqlcppconn-dev`, plain `make` is enough.
-5. **Run**
-   ```bash
-   ./local_shop_delivery
-   ```
-   The first run creates `local_shop_db` with the `users`, `products` and `orders` tables and a small set of sample shops, products and agents.
+Windows (MinGW-w64 or MSYS2 g++ on PATH)
 
-### Common problems
-| Problem | Fix |
-|---------|-----|
-| `Could not connect` | MySQL is not started in XAMPP, or the settings in `config.h` are wrong |
-| Linker errors about `mysqlcppconn` | Wrong `CONNECTOR_DIR`; point it to the folder that contains the connector's `include` and `lib` folders |
-| Program stops on wrong input | It should not. Input goes through `InputValidator`; please report the case as an issue |
+bat
+run.bat
 
-## Testing
+By hand, any system
 
-```bash
-make test          # runs both test programs
-```
+bash
+cd backend
+g++ -std=c++11 -O2 -o lsds main.cpp      # on Windows add  -lws2_32  at the end
+./lsds
 
-| Test | What it checks |
-|------|----------------|
-| `test_validator` | Letters, negative numbers, zero, `nan`, wrong phone numbers and empty names are rejected and re-asked |
-| `test_database_flow` | Tables exist, sample data loads, the same product exists in two shops, and one order moves `PENDING -> ACCEPTED -> DELIVERED` |
+Then open http://localhost:8080 in a browser. Always use this address; do not double-click index.html.
 
-Phase-II module tests (sample shops and products):
+Server options
 
-| Test | Result |
-|------|--------|
-| Shop stock functions (add / update / delete / view) | Pass |
-| Product lookup (hash map) | Pass |
-| Customer order placing | Pass |
-| Price comparison (cheapest shop first) | Pass |
-| Delivery agent assignment (nearest agent) | Not tested yet (logic pending) |
+Add them after ./run.sh, for example ./run.sh --port 8090 --lan.
 
-## Project Phases
+Option	Meaning
+--port N	Web port (default 8080)
+--lan	Let phones and laptops on the same Wi-Fi open the site: http://<this-computer-ip>:8080
+--sim-seconds-per-km S	Demo rider speed in real seconds per km (default 12, so a 6 km ride takes 72 s)
+--realtime	Rider speed like real life (4 minutes per km)
+--no-demo	First start only: create just the admin, without demo shops, agents and customers
+--data FOLDER, --web FOLDER	Where the text files and the website files are
+Console version
 
-| Phase | Focus | Status |
-|-------|-------|--------|
-| **Phase I** | Proposal, problem definition, module design, technology and DSA plan | ✅ **Completed** |
-| **Phase II** | Development of the main modules, database connection, first round of testing | 🔄 In progress (about 60%) |
-| **Phase III** | Integration, remaining modules, full testing, final report and demo | ⏳ Planned |
+Our first version was a console program. It is kept in docs/original_console_version.cpp:
 
-## Phase I: Completed
+bash
+g++ -std=c++11 -o lsds_console docs/original_console_version.cpp
+./lsds_console
+Common problems
+Problem	Fix
+g++ was not found	Install a compiler: sudo apt install g++ (Ubuntu), xcode-select --install (macOS), MinGW-w64 or MSYS2 (Windows)
+Page does not open	Use http://localhost:8080, not the index.html file. Check that the port is free, or use --port
+Want fresh demo data	Stop the server and delete backend/data/
+Demo Logins
 
-Phase I was the planning phase. We submitted the proposal and finalised the problem, modules, technology stack and data structure plan.
+Created automatically on the first start. All demo passwords are demo123, except the admin. The login window also has one-click demo buttons, and you can create your own accounts.
 
-**What was completed in Phase I**
-- [x] Proposal submitted
-- [x] Problem statement and objectives finalised
-- [x] Requirement analysis done
-- [x] System design done (modules, layers, order flow)
-- [x] Technology stack chosen: C++, MySQL (XAMPP), VS Code, Git / GitHub
-- [x] Data structure plan finalised: hash map, queue, linked list, sorting, graph search
-- [x] Team roles and module split decided
+Role	Phone	Who
+Customer	9200000001	Rahul Mehta
+Customer	9200000002	Priya Joshi
+Shopkeeper	9000000001	Sharma General Store (Market Chowk)
+Shopkeeper	9000000002 / 03 / 04	Gupta Kirana & Dairy, Singh Fresh Mart, Hill View Mart
+Delivery agent	9100000001 / 02 / 03	Amit Kumar, Rohit Verma, Sanjay Rawat
+Admin	9999999999	password admin123
+Five-Minute Demo
 
-**Feedback received in Phase I and how we handled it**
+Every browser tab keeps its own login, so one person can play all four roles in four tabs.
 
-| Feedback | Change we made |
-|----------|----------------|
-| Keep the scope realistic | Fixed the project as a console-only app, cash on delivery, no real GPS |
-| Show where DSA is actually needed | Gave each data structure a feature: hash map for lookup, queue for orders, sorting for price comparison |
-| Divide work clearly in the team | One module and one Git branch per member, with review by the team lead |
+Tab 1, customer: choose Temple Road, add Milk and Bread, open the cart, pick Nearest shop, log in as 9200000001 and place the order. You land on the tracking page.
+Tab 2, shopkeeper: log in as 9000000001. The new order is at the front of the queue: Accept, then Pack.
+Tab 1 now shows who will deliver (Amit Kumar), found with Dijkstra, and the rider on the map.
+Tab 3, delivery agent: log in as 9100000001 and press Confirm pickup. The rider starts moving on Tab 1's map.
+When the rider reaches the house, press Confirm delivery. Tab 1 shows Delivered.
+Tab 4, admin (9999999999 / admin123): Live map shows every delivery, Money shows how the Rs 129 was split.
+Live Tracking and Maps
 
-## Project Status (Phase II)
+The map uses OpenStreetMap (Leaflet) by default, which is free and needs no key. If you add a Google Maps key, the same screens use Google Maps instead.
 
-**Overall progress: about 60%.**
+To use Google Maps, paste your key in frontend/js/config.js:
 
-| Module | Status |
-|--------|--------|
-| Phase I (proposal and design) | Completed |
-| Shop management | Completed |
-| Data storage (MySQL) | Completed |
-| Order management | In progress (order tracking pending) |
-| Delivery agent | In progress (nearest-agent assignment and delivery completion pending) |
-| Rating system | Planned for Phase III |
+js
+GOOGLE_MAPS_API_KEY: "AIza..."
 
-## Team and Contributions
+A small bar above every map shows which map is in use. If Google refuses the key, the site switches to OpenStreetMap by itself.
 
-| Member | Roll No. | Role | Contribution |
-|--------|----------|------|--------------|
-| **Shaurya Bisht** | 2510012399 | Team Lead | Repository and folder structure, order queue and linked list, MySQL tables, database connection and setup, input validation, integration and final testing |
-| Mayank Ranjan | 2510011761 | Shop management | `Product` and `Shop` classes, hash-map lookup, add / update / delete / view stock |
-| Raj Vardhan | 2510010483 | Customer module | `Customer` class, browse and place order, price comparison by sorting |
-| Aradhay Singh | 2510011780 | Delivery agent module | `User` base class, `DeliveryAgent` class (inheritance), agent registration, viewing assigned orders |
+How "real-time" works. We do not use real GPS, so the rider is simulated by the C++ server. It moves the rider along the Dijkstra path 10 times a second. The customer's page asks the server every 2 seconds and glides the marker along the road, with ETA and distance left. Replacing the simulation with a phone's GPS would only change where the rider position comes from.
 
-## Git Workflow
-- One module per member, one branch per member:
-  `shaurya/order-queue`, `mayank/shop-database`, `raj/customer-module`, `aradhay/delivery-agent`
-- Small, meaningful commits (for example `Add price comparison using sorting`)
-- Branches are merged into `main` only **after review by the team lead**
+Testing
+bash
+bash tests/run_backend.sh     # needs Python 3
+bash tests/run_ui.sh          # needs Node.js + Playwright (Chromium)
+Test	What it checks	Result
+Backend API tests (5 suites, 165 checks)	Valid status flow, correct fees, roles enforced, FIFO shop desk, no overselling, reject and refund, dispatch queue, data survives a restart	Pass
+Browser tests (114 checks)	Every screen of all four roles, phone layout, Google Maps code path	Pass
+Integration (end to end)	Full order from customer to shop to delivery agent, bill and money split correct	Pass
+Input validation	Wrong input shows an error and the app keeps running	Pass
+Screenshots
+Customer price comparison	Checkout
+Compare prices	Checkout
+Live tracking	Shop order desk
+Live tracking	Shop order desk
+Delivery agent app	Admin money settlement
+Agent app	Admin money
 
-## Roadmap
+The map background in the test screenshots is a plain stand-in tile because the test machine had no internet. On a normal computer the map shows real tiles.
 
-**Phase I (completed)**
-- [x] Proposal, problem statement and objectives
-- [x] Requirement analysis and system design
-- [x] Technology stack and DSA plan
+Project Phases
+Phase	Focus	Status
+Phase I	Proposal, problem definition, module design, technology and DSA plan	✅ Completed
+Phase II	Development of the main modules, first round of testing (about 60%)	✅ Completed
+Phase III	Nearest-agent assignment (Dijkstra), live tracking, integration, full testing, final report and demo	✅ Completed
 
-**Phase II (in progress)**
-- [x] Shop management module
-- [x] MySQL tables and C++ connection
-- [x] Customer browse, order placing and price comparison
-- [x] Delivery agent registration and viewing assigned orders
-- [ ] Order status flow (queue and linked list) fully integrated
+Feedback received and how we handled it
 
-**Phase III**
-- [ ] Order tracking screen for customers
-- [ ] Nearest delivery agent using Dijkstra on the local-area graph
-- [ ] Delivery completion (accepted -> delivered)
-- [ ] Shop and delivery agent rating system
-- [ ] Input validation and error handling in all modules
-- [ ] Merge all branches into `main` after lead review
-- [ ] Full flow test: shopkeeper -> customer -> delivery agent
-- [ ] Final report and demo
+Phase	Feedback	What we did
+Phase I	Keep the scope realistic	No real GPS: an area graph with Dijkstra finds the nearest agent. Rider GPS, a payment gateway and a mobile app moved to future scope
+Phase I	Show where DSA is actually needed; divide work clearly	Each structure is tied to a feature (hash table for inventory, FIFO queue for the shop desk, linked list for orders, graph for the agent). One module and one Git branch per member
+Phase II	Nearest-agent logic was pending (BFS or Dijkstra undecided)	Dijkstra on the 8-area graph, chosen over BFS because distances are unequal. The pending test now passes
+Phase II	Input validation, integration and final testing were pending	Validation in every module, all branches merged into main, full test suites added
+Team and Contributions
+Member	Roll No.	Role	Contribution
+Shaurya Bisht	2510012399	Team Lead	Repository and folder structure, order queue, linked-list status flow, shop allocation, fees, integration and final testing
+Mayank Ranjan	2510011761	Shop management	Product and Shop classes, hash tables, stock add / update / delete / view
+Raj Vardhan	2510010483	Customer module	Customer class, cart, browsing, price comparison by sorting, order tracking
+Aradhay Singh	2510011780	Delivery agent module	User and DeliveryAgent classes, registration, Dijkstra nearest agent, delivery completion, tracking simulation
+Git Workflow
+One module per member, one branch per member: shaurya/order-queue, mayank/shop-database, raj/customer-module, aradhay/delivery-agent
+Small, meaningful commits
+Branches are merged into main only after review by the team lead
+Limitations and Future Scope
 
-**Future scope:** mobile app and real-time tracking, built on top of this console version.
+Current limitations
 
-## References
-1. T. H. Cormen et al., *Introduction to Algorithms*
-2. A. Silberschatz, H. Korth, S. Sudarshan, *Database System Concepts*
-3. B. Stroustrup, *The C++ Programming Language*
-4. Oracle, *MySQL Connector/C++ Developer Guide*
+Google Maps with a real API key has not been tested (the OpenStreetMap path is tested in a real browser)
+The Windows build has not been tested (Linux was)
+Payments are simulated. UPI and card details are only checked for the right format and are never stored or sent anywhere
+Passwords use a simple hash, which is fine for learning. A real system would use bcrypt or argon2
+The server handles one request at a time, which is enough for a classroom demo
+No rating system yet
+
+Future scope
+
+Rating system for shops and delivery agents
+Real rider GPS instead of the simulation
+A real payment gateway
+A MySQL database in place of text files
+A mobile app
+References
+T. H. Cormen et al., Introduction to Algorithms
+B. Stroustrup, The C++ Programming Language
+Leaflet and OpenStreetMap documentation
